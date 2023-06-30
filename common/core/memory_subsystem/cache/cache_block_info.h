@@ -60,6 +60,17 @@ class CacheBlockInfo
       bool updateUsage(BitsUsedType used);
 
       static const char* getOptionName(option_t option);
+
+      // arr_type
+      // 1->OA 2->EA
+      // 0->other
+      // -1->invalid/none
+      int arr_type_data;
+      
+      void set_arr_type(int arr_type){
+         if(arr_type<0) return;
+         this->arr_type_data = arr_type;
+      }
 };
 
 class CacheCntlr

@@ -26,12 +26,24 @@ class Log
          Error,
       };
 
+      //*
+      enum LogCustom
+      {
+         START=0,
+         A,
+         B,
+         C,
+         END
+      };
+
       void log(ErrorState err, const char *source_file, SInt32 source_line, const char* format, ...);
 
       bool isEnabled(const char* module);
       bool isLoggingEnabled() const { return _anyLoggingEnabled; }
 
       String getModule(const char *filename);
+
+      void log(Log::LogCustom logDst, const char *format, ...);
 
    private:
       UInt64 getTimestamp();
@@ -64,6 +76,10 @@ class Log
       bool _loggingEnabled;
       bool _anyLoggingEnabled;
 
+      //*
+      FILE** _loggerFiles;
+      Lock* _loggerLocks;
+
       /* std::map<const char*, String> _modules; */
       /* Lock _modules_lock; */
 
@@ -92,6 +108,11 @@ class Log
 
 #define likely(x)       __builtin_expect((x), 1)
 #define unlikely(x)     __builtin_expect((x), 0)
+
+#define _LOG_CUSTOM_LOGGER(err, ty,  ...)                                            \
+   {                                                                    \
+      Log::getSingleton()->log( ty, __VA_ARGS__); \
+   }  
 
 #define __LOG_PRINT(err, file, line, ...)                               \
    {                                                                    \

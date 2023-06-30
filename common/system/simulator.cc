@@ -30,6 +30,10 @@
 
 #include <sstream>
 
+//*
+#include "sim_api.h"
+#include "context_hint.h"
+
 Simulator *Simulator::m_singleton;
 config::Config *Simulator::m_config_file;
 bool Simulator::m_config_file_allowed = true;
@@ -129,6 +133,9 @@ Simulator::Simulator()
 
 void Simulator::start()
 {
+   printf("[DEBUG] 2\n");
+   printf("[DEBUG] %d\n", SimInSimulator());
+   
    LOG_PRINT("In Simulator ctor.");
    
    // create a new Decoder object for this Simulator
@@ -150,6 +157,9 @@ void Simulator::start()
    m_fastforward_performance_manager = FastForwardPerformanceManager::create();
    m_rtn_tracer = RoutineTracer::create();
    m_thread_manager = new ThreadManager();
+
+   //*
+   context_hint = new ContextHint();
 
    if (Sim()->getCfg()->getBool("traceinput/enabled"))
       m_trace_manager = new TraceManager();

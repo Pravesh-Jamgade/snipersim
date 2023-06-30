@@ -154,6 +154,9 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
    m_shmem_perf_global(NULL),
    m_shmem_perf_model(shmem_perf_model)
 {
+   //*
+   mem_data_logger = new MemDataLogger(core_id, name);
+
    m_core_id_master = m_core_id - m_core_id % m_shared_cores;
    Sim()->getStatsManager()->logTopology(name, core_id, m_core_id_master);
 
@@ -284,6 +287,8 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
 CacheCntlr::~CacheCntlr()
 {
+   mem_data_logger->PrintStat();
+
    if (isMasterCache())
    {
       delete m_master;
@@ -332,6 +337,13 @@ CacheCntlr::processMemOpFromCore(
       bool modeled,
       bool count)
 {
+
+   int arr_type = -1;
+   if(count)
+   {
+      arr_type = Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
+   }
+
    HitWhere::where_t hit_where = HitWhere::MISS;
 
    // Protect against concurrent access from sibling SMT threads
@@ -373,8 +385,17 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
    {
       cache_hit = true;
       hit_where = HitWhere::where_t(m_mem_component);
-      if (cache_block_info)
+      if (cache_block_info){
          cache_block_info->setCState(CacheState::MODIFIED);
+
+         //*
+         // if existing cache block is type=1 and incoming is type=2 then count as 1 evicted by 2
+         // this will not happen here as it is only modifying :SEE carefully it will execute
+         if(cache_block_info->arr_type_data>-1 && arr_type>-1 && cache_block_info->arr_type_data!=arr_type){
+            mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
+         }
+         cache_block_info->set_arr_type(arr_type);
+      }
       else
       {
          insertCacheBlock(ca_address, mem_op_type == Core::READ ? CacheState::SHARED : CacheState::MODIFIED, NULL, m_core_id, ShmemPerfModel::_USER_THREAD);
@@ -390,6 +411,15 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 
    if (count)
    {
+      if(arr_type>-1)
+      {
+         if(cache_hit)
+         {
+            mem_data_logger->add_hits(arr_type);
+         }
+         mem_data_logger->add_access(arr_type);
+      }
+
       ScopedLock sl(getLock());
       // Update the Cache Counters
       getCache()->updateCounters(cache_hit);
@@ -813,6 +843,17 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
+      int arr_type = Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
+      if(arr_type>-1)
+      {
+         if(cache_hit)
+         {
+            mem_data_logger->add_hits(arr_type);
+         }
+         mem_data_logger->add_access(arr_type);
+      }
+      
+
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
          getCache()->updateCounters(cache_hit);
@@ -1405,9 +1446,22 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
       m_next_cache_cntlr->notifyPrevLevelInsert(m_core_id_master, m_mem_component, address);
 MYLOG("insertCacheBlock l%d local done", m_mem_component);
 
+   // get array type of the address
+   int arr_type = Sim()->getContextHintObject()->what_is_it(address);
+   // new arr_type information
+   cache_block_info->set_arr_type(arr_type);
 
    if (eviction)
    {
+      //*
+      // array type of old cache block
+      int evict_arr_type = evict_block_info.arr_type_data;
+      // if anyone is <=0 or old and new array type are equal then "no" increase in what kind of replacement is happening
+      if(arr_type>-1 && evict_arr_type>-1 && arr_type!=evict_arr_type)
+      {  
+         mem_data_logger->replacing(arr_type, evict_arr_type);
+      }
+
 MYLOG("evicting @%lx", evict_address);
 
       if (

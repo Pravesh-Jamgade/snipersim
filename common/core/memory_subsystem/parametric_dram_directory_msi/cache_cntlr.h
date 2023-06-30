@@ -20,6 +20,9 @@
 
 #include "boost/tuple/tuple.hpp"
 
+//*
+#include "mem_level_info.h"
+
 class DramCntlrInterface;
 class ATD;
 
@@ -408,6 +411,8 @@ namespace ParametricDramDirectoryMSI
 
          friend class CacheCntlrList;
          friend class MemoryManager;
+
+         MemDataLogger* mem_data_logger;
    };
 
 }

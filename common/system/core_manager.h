@@ -50,6 +50,13 @@ class CoreManager
       bool amiUserThread();
       bool amiCoreThread();
       bool amiSimThread();
+
+      //*
+      void set_base(int type_flag, UInt64 addr)
+      {
+        std::cout << std::hex << "type: " << type_flag << ", " << " addr2: " << addr << '\n';
+      }
+      
    private:
 
       UInt32 *tid_map;

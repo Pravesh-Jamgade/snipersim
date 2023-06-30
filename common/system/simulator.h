@@ -7,6 +7,9 @@
 
 #include <decoder.h>
 
+//*
+#include "context_hint.h"
+
 class _Thread;
 class SyscallServer;
 class SyncServer;
@@ -82,6 +85,10 @@ public:
    // Access to the Decoder library for the simulator run
    void createDecoder();
    dl::Decoder *getDecoder();
+
+   //*
+   void set_context(int type, uint64_t addr);
+   ContextHint* getContextHintObject(){return context_hint;}
    
 private:
    Config m_config;
@@ -106,6 +113,9 @@ private:
    FaultinjectionManager *m_faultinjection_manager;
    RoutineTracer *m_rtn_tracer;
    MemoryTracker *m_memory_tracker;
+
+   //*
+   ContextHint* context_hint;
 
    bool m_running;
    bool m_inst_mode_output;
