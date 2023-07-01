@@ -42,7 +42,7 @@ class MemDataLogger
 
     void PrintStat()
     {
-        for(int i=0; i< 2; i++)
+        for(int i=0; i< ARRAY_TYPE; i++)
         {
             cout << std::dec << i << "," << type_access_arr[i] << "," << type_miss_arr[i] << "," << this->coreid <<","<< this->name << '\n';
             _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::A, "%d,%d,%d,%d,%s\n", i, type_access_arr[i], type_miss_arr[i], this->coreid, this->name.c_str());
@@ -54,7 +54,7 @@ class MemDataLogger
             s = s + String(to_string(replaced_by[i]).c_str()) + ",";
         }
         cout << s << '\n';
-        _LOG_CUSTOM_LOGGER(Log::Warningm, Log::LogCustom::B, "%s\n", s.c_str());
+        _LOG_CUSTOM_LOGGER(Log::Warningm, Log::LogCustom::B, "%s %d, %s\n", s.c_str(), this->coreid, this->name.c_str());
     }
 
     void replacing(int new_type, int old_type)

@@ -92,7 +92,7 @@ class ContextHint
             }
         }
 
-        else if(pa_start <= pa_end && property_ready==0)
+        else if(pa_start <= req_addr && property_ready==0)
         {
             if(req_addr <= pa_end)
             {
@@ -100,10 +100,7 @@ class ContextHint
                 return 3;
             }
         }
-        else
-        {
-            other_fs << std::hex << req_addr << '\n';
-        }
+       
         return 0;
     }
 };
