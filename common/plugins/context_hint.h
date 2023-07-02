@@ -20,6 +20,7 @@ class ContextHint
     int edge_ready, offset_ready, property_ready;
 
     fstream index_fs, edge_fs, property_fs, other_fs;
+    set<uint64_t> index_set, edge_set, prop_set, other_set;
     
     ContextHint(){
         ea_start = ea_end = 0;
@@ -31,6 +32,19 @@ class ContextHint
         index_fs.open("verify_index.log", fstream::out);
         edge_fs.open("verify_edge.log", fstream::out);
         property_fs.open("verify_property.log", fstream::out);
+        other_fs.open("verify_other.log", fstream::out);
+    }
+
+    ~ContextHint()
+    {
+        for(auto e: index_set) 
+            index_fs << std::hex << e  << '\n';
+        for(auto e: edge_set)
+            edge_fs << std::hex << e << '\n';
+        for(auto e: prop_set)
+            property_fs << std::hex << e << '\n';
+        for(auto e: other_set)
+            other_fs << std::hex << e << '\n';
     }
 
     void set_context(int type, uint64_t addr)
@@ -78,7 +92,7 @@ class ContextHint
         {
             if(req_addr <= oa_end) 
             {
-                index_fs << std::hex << req_addr << "," <<std::dec<< 1 << '\n';
+                index_set.insert(req_addr);
                 return 1;
             }
         }
@@ -87,7 +101,7 @@ class ContextHint
         {
             if(req_addr <= ea_end) 
             {
-                edge_fs << std::hex << req_addr << "," <<std::dec<< 2 << '\n';
+                edge_set.insert(req_addr);
                 return 2;
             }
         }
@@ -96,9 +110,14 @@ class ContextHint
         {
             if(req_addr <= pa_end)
             {
-                property_fs << std::hex << req_addr << "," <<std::dec<< 3 << '\n';
+                prop_set.insert(req_addr);
                 return 3;
             }
+        }
+
+        else
+        {
+            other_set.insert(req_addr);
         }
        
         return 0;
