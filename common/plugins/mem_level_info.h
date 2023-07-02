@@ -62,7 +62,7 @@ class MemDataLogger
         int index = new_type + old_type;
         if(old_type == 0) index += 0;
         if(old_type == 1) index += 2;
-        if(old_type == 2) index += 5;
+        if(old_type == 2) index += 4;
         replaced_by[index]++;
     }   
 
