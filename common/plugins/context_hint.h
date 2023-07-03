@@ -19,9 +19,6 @@ class ContextHint
 
     int edge_ready, offset_ready, property_ready;
 
-    fstream index_fs, edge_fs, property_fs, other_fs;
-    set<uint64_t> index_set, edge_set, prop_set, other_set;
-    
     ContextHint(){
         ea_start = ea_end = 0;
         oa_start = oa_end = 0;
@@ -92,7 +89,6 @@ class ContextHint
         {
             if(req_addr <= oa_end) 
             {
-                index_set.insert(req_addr);
                 return 1;
             }
         }
@@ -101,7 +97,6 @@ class ContextHint
         {
             if(req_addr <= ea_end) 
             {
-                edge_set.insert(req_addr);
                 return 2;
             }
         }
@@ -110,16 +105,9 @@ class ContextHint
         {
             if(req_addr <= pa_end)
             {
-                prop_set.insert(req_addr);
                 return 3;
             }
         }
-
-        else
-        {
-            other_set.insert(req_addr);
-        }
-       
         return 0;
     }
 };

@@ -695,6 +695,8 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
    bool no_mapping = false;
    UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
 
+   // std::cout << mem_address << "," << pa << '\n';
+
    if (no_mapping)
    {
       dynins->addMemory(
