@@ -19,29 +19,17 @@ class ContextHint
 
     int edge_ready, offset_ready, property_ready;
 
-    ContextHint(){
+    ContextHint()
+    {
         ea_start = ea_end = 0;
         oa_start = oa_end = 0;
         pa_start = pa_end = 0;
         
         edge_ready = offset_ready = property_ready = 2;
-    
-        index_fs.open("verify_index.log", fstream::out);
-        edge_fs.open("verify_edge.log", fstream::out);
-        property_fs.open("verify_property.log", fstream::out);
-        other_fs.open("verify_other.log", fstream::out);
     }
 
     ~ContextHint()
     {
-        for(auto e: index_set) 
-            index_fs << std::hex << e  << '\n';
-        for(auto e: edge_set)
-            edge_fs << std::hex << e << '\n';
-        for(auto e: prop_set)
-            property_fs << std::hex << e << '\n';
-        for(auto e: other_set)
-            other_fs << std::hex << e << '\n';
     }
 
     void set_context(int type, uint64_t addr)
