@@ -3,6 +3,7 @@
 
 #include <bits/stdc++.h>
 #include "log.h"
+#include "constant.h"
 using namespace std;
 
 //TODO: Currently considering even after address translation va remains same
@@ -71,13 +72,13 @@ class ContextHint
         }
     }
 
-    int what_is_it(uint64_t req_addr, int level=0)
+    ARRAY_TYPE what_is_it(uint64_t req_addr, int level=0)
     {
         if(oa_start <= req_addr && offset_ready==0)
         {
             if(req_addr <= oa_end) 
             {
-                return 1;
+                return ARRAY_TYPE::OA;
             }
         }
 
@@ -85,7 +86,7 @@ class ContextHint
         {
             if(req_addr <= ea_end) 
             {
-                return 2;
+                return ARRAY_TYPE::EA;
             }
         }
 
@@ -93,10 +94,10 @@ class ContextHint
         {
             if(req_addr <= pa_end)
             {
-                return 3;
+                return ARRAY_TYPE::PA;
             }
         }
-        return 0;
+        return ARRAY_TYPE::NONE;
     }
 };
 

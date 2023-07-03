@@ -341,7 +341,7 @@ CacheCntlr::processMemOpFromCore(
    int arr_type = -1;
    if(count)
    {
-      arr_type = Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
+      arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
    }
 
    HitWhere::where_t hit_where = HitWhere::MISS;
@@ -843,7 +843,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
-      int arr_type = Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
+      int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
       if(arr_type>-1)
       {
          if(cache_hit)
@@ -1447,7 +1447,7 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
 MYLOG("insertCacheBlock l%d local done", m_mem_component);
 
    // get array type of the address
-   int arr_type = Sim()->getContextHintObject()->what_is_it(address);
+   int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address);
    // new arr_type information
    cache_block_info->set_arr_type(arr_type);
 
