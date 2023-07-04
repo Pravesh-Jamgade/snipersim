@@ -22,6 +22,7 @@ class MemDataLogger
     uint64_t replaced_by[10]={0};    
     String name;
     int coreid;
+    bool once_a;
 
     public:
     MemDataLogger(){ name= "", coreid=-1;}
@@ -29,6 +30,7 @@ class MemDataLogger
     {
         this->coreid = coreid;
         this->name = name;
+        this->once_a = false;
     }
 
     void add_access(int type){type_access_arr[type]++;}
@@ -48,7 +50,12 @@ class MemDataLogger
             _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::A, "%d,%d,%d,%d,%s\n", i, type_access_arr[i], type_miss_arr[i], this->coreid, this->name.c_str());
         }
 
-        _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::B, "OA->OA, OA->EA, OA->PA, EA->OA, EA->EA, EA->PA, PA->OA, PA->EA, PA->PA, core, cache\n");
+        if(!once_a)
+        {
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::B, "OA->OA, OA->EA, OA->PA, EA->OA, EA->EA, EA->PA, PA->OA, PA->EA, PA->PA, core, cache\n");
+            once_a = true;
+        }
+        
         String s= "";
         for(int i=0; i< 9; i++)
         {
