@@ -1457,7 +1457,7 @@ MYLOG("insertCacheBlock l%d local done", m_mem_component);
       // array type of old cache block
       int evict_arr_type = evict_block_info.arr_type_data;
       // if anyone is <=0 or old and new array type are equal then "no" increase in what kind of replacement is happening
-      if(arr_type>-1 && evict_arr_type>-1 && arr_type!=evict_arr_type)
+      if(arr_type>-1 && evict_arr_type>-1)
       {  
          mem_data_logger->replacing(arr_type, evict_arr_type);
       }
