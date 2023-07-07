@@ -431,13 +431,46 @@ MemoryManager::coreInitiateMemoryAccess(
    else if (mem_component == MemComponent::L1_DCACHE && m_dtlb)
       accessTLB(m_dtlb, address, false, modeled);
 
-   return m_cache_cntlrs[mem_component]->processMemOpFromCore(
+   HitWhere::where_t hit_where = m_cache_cntlrs[mem_component]->processMemOpFromCore(
          lock_signal,
          mem_op_type,
          address, offset,
          data_buf, data_length,
          modeled == Core::MEM_MODELED_NONE || modeled == Core::MEM_MODELED_COUNT ? false : true,
          modeled == Core::MEM_MODELED_NONE ? false : true);
+   
+   if(modeled != Core::MEM_MODELED_NONE)
+   {  
+      // test
+      Sim()->getContextHintObject()->all_collected.insert(Hit2WhereString(hit_where));
+      int access_type = static_cast<int>(Sim()->getContextHintObject()->what_is_it(address));
+      
+      switch(hit_where)
+      {
+         case HitWhere::where_t::L1_OWN:
+            m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_hits(access_type);
+            m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_access(access_type);
+            break;
+            
+         case HitWhere::where_t::L2_OWN:
+            m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_hits(access_type);
+            m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_access(access_type);
+            break;
+
+         case HitWhere::where_t::L3_OWN:
+            m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_hits(access_type);
+            m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_access(access_type);
+            break;
+
+         case HitWhere::where_t::DRAM:
+            break;
+         
+         default:
+            break;
+      }
+   }
+
+   return hit_where;
 }
 
 void

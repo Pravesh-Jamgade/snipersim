@@ -2,7 +2,7 @@
 #define __HIT_WHERE
 
 #include "mem_component.h"
-
+#include "fixed_types.h"
 #include <cstddef>
 #include <functional>
 
@@ -47,5 +47,6 @@ namespace std
 
 const char * HitWhereString(HitWhere::where_t where);
 bool HitWhereIsValid(HitWhere::where_t where);
+String Hit2WhereString(HitWhere::where_t where);
 
 #endif /* __HIT_WHERE */

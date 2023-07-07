@@ -20,6 +20,8 @@ class ContextHint
 
     int edge_ready, offset_ready, property_ready;
 
+    set<String> all_collected;
+
     ContextHint()
     {
         ea_start = ea_end = 0;
@@ -31,6 +33,13 @@ class ContextHint
 
     ~ContextHint()
     {
+        fstream f;
+        f.open("all_access.stat", fstream::out);
+        for(auto e: all_collected)
+        {
+            f << e << '\n';
+        }
+        f.close();
     }
 
     void set_context(int type, uint64_t addr)
@@ -78,6 +87,7 @@ class ContextHint
         {
             if(req_addr <= oa_end) 
             {
+                all_collected.insert("OA");
                 return ARRAY_TYPE::OA;
             }
         }
@@ -86,6 +96,7 @@ class ContextHint
         {
             if(req_addr <= ea_end) 
             {
+                all_collected.insert("EA");
                 return ARRAY_TYPE::EA;
             }
         }
@@ -94,6 +105,7 @@ class ContextHint
         {
             if(req_addr <= pa_end)
             {
+                all_collected.insert("PA");
                 return ARRAY_TYPE::PA;
             }
         }

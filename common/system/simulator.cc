@@ -210,6 +210,8 @@ void Simulator::start()
 
 Simulator::~Simulator()
 {
+   delete context_hint;
+   
    // Done with all the Pin stuff, allow using Config::Config again
    m_config_file_allowed = true;
 
