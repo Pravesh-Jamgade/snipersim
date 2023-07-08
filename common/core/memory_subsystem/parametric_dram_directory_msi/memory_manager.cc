@@ -380,7 +380,7 @@ MemoryManager::MemoryManager(Core* core,
 MemoryManager::~MemoryManager()
 {
    delete dram_data_logger;
-   
+
    UInt32 i;
 
    getNetwork()->unregisterCallback(SHARED_MEM_1);
@@ -453,28 +453,51 @@ MemoryManager::coreInitiateMemoryAccess(
       {
          case HitWhere::where_t::L1_OWN:
             m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_hits(access_type);
-            m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_access(access_type);
             break;
             
          case HitWhere::where_t::L2_OWN:
             m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_hits(access_type);
-            m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_access(access_type);
             break;
 
          case HitWhere::where_t::L3_OWN:
             m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_hits(access_type);
-            m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_access(access_type);
             break;
          
          case HitWhere::where_t::DRAM_CACHE:
          case HitWhere::where_t::DRAM_LOCAL:
          case HitWhere::where_t::DRAM:
             dram_data_logger->add_hits(access_type);
-            dram_data_logger->add_access(access_type);
             break;
 
          default:
             break;
+      }
+
+      for(int i=hit_where; i>= HitWhere::where_t::L1I; i--)
+      {
+         switch(hit_where)
+         {
+            case HitWhere::where_t::L1_OWN:
+               m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_access(access_type);
+               break;
+               
+            case HitWhere::where_t::L2_OWN:
+               m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_access(access_type);
+               break;
+
+            case HitWhere::where_t::L3_OWN:
+               m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_access(access_type);
+               break;
+            
+            case HitWhere::where_t::DRAM_CACHE:
+            case HitWhere::where_t::DRAM_LOCAL:
+            case HitWhere::where_t::DRAM:
+               dram_data_logger->add_access(access_type);
+               break;
+
+            default:
+               break;
+         }
       }
    }
 
