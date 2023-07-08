@@ -8,9 +8,6 @@
 
 #include "boost/tuple/tuple.hpp"
 
-//**
-#include "mem_level_info.h"
-
 class MemoryManagerBase;
 class ShmemPerfModel;
 class ShmemPerf;
@@ -33,9 +30,6 @@ class DramCntlrInterface
          WRITE,
          NUM_ACCESS_TYPES
       } access_t;
-
-      //**
-      MemDataLogger* mem_data_logger;
 
       DramCntlrInterface(MemoryManagerBase* memory_manager, ShmemPerfModel* shmem_perf_model, UInt32 cache_block_size)
          : m_memory_manager(memory_manager)

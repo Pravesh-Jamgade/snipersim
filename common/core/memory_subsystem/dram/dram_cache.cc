@@ -29,8 +29,6 @@ DramCache::DramCache(MemoryManagerBase* memory_manager, ShmemPerfModel* shmem_pe
    , m_prefetches(0)
    , m_prefetch_mshr_delay(SubsecondTime::Zero())
 {
-   mem_data_logger = new MemDataLogger(memory_manager->getCore()->getId(), String("dram-cache"));
-
    UInt32 cache_size = Sim()->getCfg()->getIntArray("perf_model/dram/cache/cache_size", m_core_id);
    UInt32 associativity = Sim()->getCfg()->getIntArray("perf_model/dram/cache/associativity", m_core_id);
    UInt32 num_sets = k_KILO * cache_size / (associativity * m_cache_block_size);

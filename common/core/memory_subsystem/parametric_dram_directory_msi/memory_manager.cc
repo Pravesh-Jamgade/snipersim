@@ -44,6 +44,8 @@ MemoryManager::MemoryManager(Core* core,
    m_dram_cntlr_present(false),
    m_enabled(false)
 {
+   dram_data_logger = new MemDataLogger(core->getId(), "dram");
+
    // Read Parameters from the Config file
    std::map<MemComponent::component_t, CacheParameters> cache_parameters;
    std::map<MemComponent::component_t, String> cache_names;
@@ -377,6 +379,8 @@ MemoryManager::MemoryManager(Core* core,
 
 MemoryManager::~MemoryManager()
 {
+   delete dram_data_logger;
+   
    UInt32 i;
 
    getNetwork()->unregisterCallback(SHARED_MEM_1);
@@ -461,18 +465,14 @@ MemoryManager::coreInitiateMemoryAccess(
             m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_hits(access_type);
             m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_access(access_type);
             break;
-
+         
+         case HitWhere::where_t::DRAM_CACHE:
          case HitWhere::where_t::DRAM_LOCAL:
          case HitWhere::where_t::DRAM:
-            m_dram_cntlr->mem_data_logger->add_hits(access_type);
-            m_dram_cntlr->mem_data_logger->add_access(access_type);
+            dram_data_logger->add_hits(access_type);
+            dram_data_logger->add_access(access_type);
             break;
 
-         case HitWhere::where_t::DRAM_CACHE:
-            m_dram_cache->mem_data_logger->add_hits(access_type);
-            m_dram_cache->mem_data_logger->add_access(access_type);
-            break;
-         
          default:
             break;
       }

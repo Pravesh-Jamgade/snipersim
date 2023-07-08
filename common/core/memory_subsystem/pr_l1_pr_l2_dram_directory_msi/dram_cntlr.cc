@@ -28,9 +28,6 @@ DramCntlr::DramCntlr(MemoryManagerBase* memory_manager,
    , m_reads(0)
    , m_writes(0)
 {
-   //**
-   mem_data_logger = new MemDataLogger(memory_manager->getCore()->getId(), String("dram"));
-   
    m_dram_perf_model = DramPerfModel::createDramPerfModel(
          memory_manager->getCore()->getId(),
          cache_block_size);
