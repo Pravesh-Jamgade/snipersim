@@ -449,6 +449,7 @@ MemoryManager::coreInitiateMemoryAccess(
       Sim()->getContextHintObject()->all_collected.insert(Hit2WhereString(hit_where));
       int access_type = static_cast<int>(Sim()->getContextHintObject()->what_is_it(address));
       
+      // count hit accesses
       switch(hit_where)
       {
          case HitWhere::where_t::L1_OWN:
@@ -473,14 +474,11 @@ MemoryManager::coreInitiateMemoryAccess(
             break;
       }
 
-      for(int i=hit_where; i>= HitWhere::where_t::L1I; i--)
+      // count total access 
+      for(int i=hit_where; i>= HitWhere::where_t::L2_OWN; i--)
       {
-         switch(hit_where)
+         switch(i)
          {
-            case HitWhere::where_t::L1_OWN:
-               m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_access(access_type);
-               break;
-               
             case HitWhere::where_t::L2_OWN:
                m_cache_cntlrs[MemComponent::component_t::L2_CACHE]->mem_data_logger->add_access(access_type);
                break;
@@ -499,6 +497,13 @@ MemoryManager::coreInitiateMemoryAccess(
                break;
          }
       }
+
+      if(mem_component == MemComponent::L1_ICACHE)
+         m_cache_cntlrs[MemComponent::component_t::L1_ICACHE]->mem_data_logger->add_access(access_type);
+      
+      if(mem_component == MemComponent::L1_DCACHE)
+         m_cache_cntlrs[MemComponent::component_t::L1_DCACHE]->mem_data_logger->add_access(access_type);
+
    }
 
    return hit_where;
