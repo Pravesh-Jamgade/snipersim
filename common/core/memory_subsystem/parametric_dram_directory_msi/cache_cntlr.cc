@@ -411,13 +411,11 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 
    if (count)
    {
-      if(arr_type>-1)
+      if(cache_hit)
       {
-         if(cache_hit)
-         {
-            mem_data_logger->add_hits(arr_type);
-         }
-         mem_data_logger->add_access(arr_type);
+         int existing_arr_type = cache_block_info->arr_type_data;
+         int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
+         mem_data_logger->replacing(new_arr_type, existing_arr_type);
       }
 
       ScopedLock sl(getLock());
@@ -843,17 +841,6 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
-      int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
-      if(arr_type>-1)
-      {
-         if(cache_hit)
-         {
-            mem_data_logger->add_hits(arr_type);
-         }
-         mem_data_logger->add_access(arr_type);
-      }
-      
-
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
          getCache()->updateCounters(cache_hit);
@@ -1765,6 +1752,7 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
       so only when we accessed data should we return any latency */
    if (is_writeback)
       latency += m_writeback_time.getLatency();
+   
    return std::pair<SubsecondTime, bool>(latency, sibling_hit);
 }
 

@@ -8,6 +8,9 @@
 
 #include "boost/tuple/tuple.hpp"
 
+//**
+#include "mem_level_info.h"
+
 class MemoryManagerBase;
 class ShmemPerfModel;
 class ShmemPerf;
@@ -31,11 +34,15 @@ class DramCntlrInterface
          NUM_ACCESS_TYPES
       } access_t;
 
+      //**
+      MemDataLogger* mem_data_logger;
+
       DramCntlrInterface(MemoryManagerBase* memory_manager, ShmemPerfModel* shmem_perf_model, UInt32 cache_block_size)
          : m_memory_manager(memory_manager)
          , m_shmem_perf_model(shmem_perf_model)
          , m_cache_block_size(cache_block_size)
-      {}
+      {
+      }
       virtual ~DramCntlrInterface() {}
 
       virtual boost::tuple<SubsecondTime, HitWhere::where_t> getDataFromDram(IntPtr address, core_id_t requester, Byte* data_buf, SubsecondTime now, ShmemPerf *perf) = 0;

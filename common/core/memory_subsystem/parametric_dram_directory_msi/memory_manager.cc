@@ -462,7 +462,15 @@ MemoryManager::coreInitiateMemoryAccess(
             m_cache_cntlrs[MemComponent::component_t::L3_CACHE]->mem_data_logger->add_access(access_type);
             break;
 
+         case HitWhere::where_t::DRAM_LOCAL:
          case HitWhere::where_t::DRAM:
+            m_dram_cntlr->mem_data_logger->add_hits(access_type);
+            m_dram_cntlr->mem_data_logger->add_access(access_type);
+            break;
+
+         case HitWhere::where_t::DRAM_CACHE:
+            m_dram_cache->mem_data_logger->add_hits(access_type);
+            m_dram_cache->mem_data_logger->add_access(access_type);
             break;
          
          default:

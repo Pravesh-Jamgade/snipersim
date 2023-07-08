@@ -14,9 +14,9 @@ class ContextHint
     public:
 
     // (OA/EA/PA)
-    uint64_t ea_start, ea_end;
-    uint64_t oa_start, oa_end;
-    uint64_t pa_start, pa_end;
+    IntPtr ea_start, ea_end;
+    IntPtr oa_start, oa_end;
+    IntPtr pa_start, pa_end;
 
     int edge_ready, offset_ready, property_ready;
 
@@ -42,7 +42,7 @@ class ContextHint
         f.close();
     }
 
-    void set_context(int type, uint64_t addr)
+    void set_context(int type, IntPtr addr)
     {
         if(type == 765)
         {
@@ -81,7 +81,7 @@ class ContextHint
         }
     }
 
-    ARRAY_TYPE what_is_it(uint64_t req_addr, int level=0)
+    ARRAY_TYPE what_is_it(IntPtr req_addr, int level=0)
     {
         if(oa_start <= req_addr && offset_ready==0)
         {
