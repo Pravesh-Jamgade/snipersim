@@ -82,6 +82,16 @@ public:
    // Access to the Decoder library for the simulator run
    void createDecoder();
    dl::Decoder *getDecoder();
+
+   //saurabh
+   int Neigh_count_On_Hit = 0;
+   int Neigh_count_On_Miss = 0;
+   int Index_count_On_Hit = 0;
+   int Index_count_On_Miss = 0;
+   int flag =0;
+   IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
+   IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
+   //saurabh
    
 private:
    Config m_config;
