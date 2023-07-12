@@ -337,13 +337,6 @@ CacheCntlr::processMemOpFromCore(
       bool modeled,
       bool count)
 {
-
-   int arr_type = -1;
-   if(count)
-   {
-      arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
-   }
-
    HitWhere::where_t hit_where = HitWhere::MISS;
 
    // Protect against concurrent access from sibling SMT threads
@@ -391,10 +384,15 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          //*
          // if existing cache block is type=1 and incoming is type=2 then count as 1 evicted by 2
          // this will not happen here as it is only modifying :SEE carefully it will execute
-         if(cache_block_info->arr_type_data>-1 && arr_type>-1 && cache_block_info->arr_type_data!=arr_type){
-            mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
+         if(count)
+         {
+            int arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
+            if(cache_block_info->arr_type_data>-1 && arr_type>-1){
+               mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
+            }
+            cache_block_info->set_arr_type(arr_type);
          }
-         cache_block_info->set_arr_type(arr_type);
+         
       }
       else
       {
@@ -841,17 +839,16 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
-      int arr_type = Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
-      if(arr_type>-1)
+      if(cache_hit)
       {
-         if(cache_hit)
+         int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
+         if(arr_type>-1 && cache_block_info->arr_type_data>-1)
          {
-            mem_data_logger->add_hits(arr_type);
+            mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
          }
-         mem_data_logger->add_access(arr_type);
+         cache_block_info->set_arr_type(arr_type);
       }
       
-
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
          getCache()->updateCounters(cache_hit);
