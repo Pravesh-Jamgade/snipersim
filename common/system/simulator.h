@@ -89,6 +89,7 @@ public:
    int Index_count_On_Hit = 0;
    int Index_count_On_Miss = 0;
    int flag =0;
+   int flag_a, flag_b, flag_c = 0;
    IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
    IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
    //saurabh

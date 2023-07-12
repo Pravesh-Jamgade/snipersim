@@ -10,13 +10,17 @@ private:
     IntPtr queue[MAX_QUEUE_SIZE];
     int front;
     int rear;
+    
+    
+public:
+    int ptr;
     int count;
 
-public:
     CQ()
     {
         front = rear = 0;
         count = 0;
+        ptr = -1;
     }
 
     bool isEmpty()
@@ -48,10 +52,10 @@ public:
         count--;
     }
 
-    IntPtr get(int index)
+    int get(int index)
     {
         if (index < 0 || index >= count)
-            return 0;
+            return -1;
 
         return queue[(front + index) % MAX_QUEUE_SIZE];
     }

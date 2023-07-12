@@ -125,6 +125,15 @@ Simulator::Simulator()
    , m_running(false)
    , m_inst_mode_output(true)
 {
+
+   Neigh_count_On_Hit = 0;
+   Neigh_count_On_Miss = 0;
+   Index_count_On_Hit = 0;
+   Index_count_On_Miss = 0;
+   flag =0;
+   flag_a = flag_b = flag_c =0;
+   Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
+   Virtual_Index_Start = 0, Virtual_Index_End =0;
 }
 
 void Simulator::start()

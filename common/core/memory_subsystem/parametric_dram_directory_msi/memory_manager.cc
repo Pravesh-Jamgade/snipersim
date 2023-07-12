@@ -426,7 +426,8 @@ MemoryManager::coreInitiateMemoryAccess(
    LOG_ASSERT_ERROR(mem_component <= m_last_level_cache,
       "Error: invalid mem_component (%d) for coreInitiateMemoryAccess", mem_component);
 
-   Print_Range(address, offset, address);
+   if(modeled == Core::MEM_MODELED_NONE)
+      Print_Range(address, offset, address);
 
    if (mem_component == MemComponent::L1_ICACHE && m_itlb)
       accessTLB(m_itlb, address, true, modeled);
@@ -444,70 +445,51 @@ MemoryManager::coreInitiateMemoryAccess(
 
 void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address)
 {
+  
+   if(address == va_address)
+   {
+   }
+   else 
+   {
+      std::cout << "MISMATCH\n";
+      exit(0);
+   }
+
    // int flag = 0;  //saurabh
-   for (int i = 30; i > 0; i--)
+   for (int i = (vaQueue.ptr==-1)?0:vaQueue.ptr; i < MAX_QUEUE_SIZE && !vaQueue.isEmpty(); i++)
    {
       IntPtr va = vaQueue.get(i);
-      if (((va_address - 48) == va)) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
+      if (((va_address - 48) == va) || Sim()->flag_a) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
       {
-         for (int j = i-1; j > 0; j--)
+         if(!Sim()->flag_a) 
          {
-            IntPtr vb = vaQueue.get(j);
-            if (((va_address - 32) == vb))//56
-            {
-               for (int k = j-1; k > 0; k--)
-               {
-                  IntPtr vc = vaQueue.get(k);
-                  if (((va_address - 76) == vc))//152
-                  {
-                     switch(Sim()->flag)
-                     {
-                        case 0:
-                        {
-                           Sim()->flag++;
-                           std::cout << i << " " << j << " " << k << " no : 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
-                           break;
-                        }
-                        case 1:
-                        {
-                           Sim()->flag++;
-                           std::cout << i << " " << j << " " << k << " start neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
-                           Sim()->Virtual_Neigh_Start = va_address;
-                           break;
-                        }
-                        case 2:
-                        {
-                           Sim()->flag++;
-                           Sim()->Virtual_Neigh_End = va_address;
-                           Sim()->Virtual_Index_Start = va_address;
-                           std::cout << i << " " << j << " " << k << " end Neigh and start index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
-                           break;
-                        }
-                        case 3:
-                        {
-                           // Sim()->flag++;
-                           Sim()->Virtual_Index_End = va_address;
-                           std::cout << i << " " << j << " " << k << " end index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
-                           break;
-                        }
-                        default:
-                           printf("default Case");
-
-                     }// break;                     
-                  }//if (flag == 1) break;                  
-               }            
-                           
-            }//if (Sim()->flag == 1) break;
+            Sim()->flag_a = true;
+            vaQueue.ptr = i;
          }
-      
-      }//if (Sim()->flag == 1) break;
+
+         if (((va_address - 32) == va) || Sim()->flag_b)//56
+         {
+            if(!Sim()->flag_b) 
+            {
+               Sim()->flag_b = true;
+               vaQueue.ptr = i;
+            }
+
+            if (((va_address - 76) == va) || Sim()->flag_c)//152
+            {
+               if(!Sim()->flag_c) 
+               {
+                  Sim()->flag_c = true;
+                  vaQueue.ptr = i;
+               }
+               
+               std::cout<<"[+++++++++]\n";
+               std::cout<<"[TRACKING] "<<va_address<<'\n';
+            }            
+         }
+      }
    }
    vaQueue.enqueue(va_address);
-   
-   // if(Sim()->flag == 1)
-   // {
-   //    std::cout << "Virtual_Address: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
-   // }
 }
 
 void
