@@ -22,9 +22,12 @@
 #define SIM_OPT_INSTRUMENT_WARMUP      1
 #define SIM_OPT_INSTRUMENT_FASTFORWARD 2
 
+//*
+#define SIM_CMD_USER_ABI 100
+
 #if defined(__aarch64__)
 
-#define SimMagic0(cmd) ({                       \
+#define SimSIM_USER_ABIMagic0(cmd) ({                       \
    unsigned long _cmd = (cmd), _res;            \
    asm volatile (           \
    "mov x1, %[x]\n"         \
@@ -113,6 +116,22 @@
    _res;                                     \
 })
 
+//*
+#define SimMagic3(cmd, arg0, arg1, arg2) ({        \
+   unsigned long _cmd = (cmd), _arg0 = (arg0), _arg1 = (arg1), _arg2 = (arg2), _res; \
+   __asm__ __volatile__ (                    \
+   "mov %1, %%" MAGIC_REG_A "\n"             \
+   "\tmov %2, %%" MAGIC_REG_B "\n"           \
+   "\tmov %3, %%" MAGIC_REG_C "\n"           \
+   "\txchg %%bx, %%bx\n"                     \
+   : "=a" (_res)           /* output    */   \
+   : "g"(_cmd),                              \
+     "g"(_arg0),                             \
+     "g"(_arg1)            /* input     */   \
+   : "%" MAGIC_REG_B, "%" MAGIC_REG_C ); /* clobbered */ \
+   _res;                                     \
+})
+
 #endif
 
 #define SimRoiStart()             SimMagic0(SIM_CMD_ROI_START)
@@ -131,5 +150,6 @@
 #define SimUser(cmd, arg)         SimMagic2(SIM_CMD_USER, cmd, arg)
 #define SimSetInstrumentMode(opt) SimMagic1(SIM_CMD_INSTRUMENT_MODE, opt)
 #define SimInSimulator()          (SimMagic0(SIM_CMD_IN_SIMULATOR)!=SIM_CMD_IN_SIMULATOR)
-
+//*
+#define SimUserAPI(cmd, arg1, arg2) SimMagic3(SIM_CMD_USER_ABI, cmd, arg1, arg2)
 #endif /* __SIM_API */

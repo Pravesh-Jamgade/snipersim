@@ -133,6 +133,9 @@ Simulator::Simulator()
 
 void Simulator::start()
 {
+   printf("[DEBUG] 2\n");
+   printf("[DEBUG] %d\n", SimInSimulator());
+   
    LOG_PRINT("In Simulator ctor.");
    
    // create a new Decoder object for this Simulator

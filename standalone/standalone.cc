@@ -9,6 +9,7 @@
 
 int main(int argc, char* argv[])
 {
+
    // Set thread name for Sniper-in-Sniper simulations
    SimSetThreadName("main");
 
