@@ -34,11 +34,21 @@ class ContextHint
     ~ContextHint()
     {
         fstream f;
-        f.open("all_access.stat", fstream::out);
+        f.open("userdebug.stat", std::fstream::in | std::fstream::out | std::fstream::app);
         for(auto e: all_collected)
         {
-            f << e << '\n';
+            f << std::hex << e << '\n';
         }
+        
+        f << std::hex << "oa_start," << oa_start << ',' << offset_ready << '\n';
+        f << std::hex << "oa_end," << oa_end << ',' << offset_ready <<'\n';
+
+        f << std::hex << "ea_start," << ea_start << ',' << edge_ready <<'\n';
+        f << std::hex << "ea_end," << ea_end << ',' << edge_ready << '\n';
+        
+        f << std::hex << "pa_start," << pa_start << ',' << property_ready << '\n';
+        f << std::hex << "pa_end," << pa_end << ',' << property_ready << '\n';
+
         f.close();
     }
 

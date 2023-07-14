@@ -379,6 +379,8 @@ MemoryManager::MemoryManager(Core* core,
 
 MemoryManager::~MemoryManager()
 {
+   //**
+   dram_data_logger->PrintStat();
    delete dram_data_logger;
 
    UInt32 i;
@@ -404,6 +406,9 @@ MemoryManager::~MemoryManager()
 
    for(i = MemComponent::FIRST_LEVEL_CACHE; i <= (UInt32)m_last_level_cache; ++i)
    {
+      //**
+      m_cache_cntlrs[(MemComponent::component_t)i]->mem_data_logger->PrintStat();
+
       delete m_cache_cntlrs[(MemComponent::component_t)i];
       m_cache_cntlrs[(MemComponent::component_t)i] = NULL;
    }

@@ -287,8 +287,6 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
 CacheCntlr::~CacheCntlr()
 {
-   mem_data_logger->PrintStat();
-
    if (isMasterCache())
    {
       delete m_master;

@@ -70,7 +70,7 @@ class MemDataLogger
         for(int i=0; i< ARRAY_TYPE_SIZE; i++)
         {
             cout << std::dec << get_arr_name(i) << "," << type_access_arr[i] << "," << type_hit_arr[i] << "," << this->coreid <<","<< this->name << '\n';
-            _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::A, "%ld,%ld,%ld,%ld,%s\n", i, type_access_arr[i], type_hit_arr[i], this->coreid, this->name.c_str());
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::A, "%s,%ld,%ld,%ld,%s\n", get_arr_name(i).c_str(), type_access_arr[i], type_hit_arr[i], this->coreid, this->name.c_str());
         }
 
         String s= "";
