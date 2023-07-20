@@ -176,6 +176,7 @@ frontend_options_str = ' '.join(frontend_options)
 
 # convert to absolute path
 outputfile = os.path.realpath(os.path.join(outputfile))
+print('[RECORD TRACE]', outputfile)
 
 pinoptions = '-mt -injection child -xyzzy -ifeellucky'
 if use_pid:

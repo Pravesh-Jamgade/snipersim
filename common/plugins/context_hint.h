@@ -19,6 +19,7 @@ class ContextHint
     IntPtr pa_start, pa_end;
 
     int edge_ready, offset_ready, property_ready;
+    bool allow_edge, allow_offset, allow_property;
 
     set<String> all_collected;
 
@@ -29,6 +30,7 @@ class ContextHint
         pa_start = pa_end = 0;
         
         edge_ready = offset_ready = property_ready = 2;
+        allow_edge = allow_offset = allow_property = false;
     }
 
     ~ContextHint()
@@ -54,14 +56,6 @@ class ContextHint
 
     void set_context(int type, IntPtr addr)
     {
-        if(type == 765)
-        {
-            cout << "++++++++++++++++++++++++++++++++++++\n";
-            cout << "[PLUGIN] STARTING Kernel\n";
-            cout << "++++++++++++++++++++++++++++++++++++\n";
-            return;
-        }
-        if(type>=10) return;
         switch(type)
         {
             case 1:
@@ -88,12 +82,41 @@ class ContextHint
                 pa_end = addr;
                 property_ready--;
                 break;
+            case 765:
+                {
+                    if(offset_ready==0) 
+                        allow_offset = true;
+                    
+                    if(edge_ready==0)
+                        allow_edge = true;
+                    
+                    if(property_ready==0)
+                        allow_property = true;
+
+                    fstream f;
+                    f.open("userdebug.stat", std::fstream::in | std::fstream::out | std::fstream::app);
+                    f << "*************************************************************************\n";
+                    f << std::hex << "oa_start," << oa_start << ',' << offset_ready << ',' << allow_offset << '\n';
+                    f << std::hex << "oa_end," << oa_end << ',' << offset_ready <<  ',' << allow_offset <<'\n';
+
+                    f << std::hex << "ea_start," << ea_start << ',' << edge_ready << ',' << allow_edge <<'\n';
+                    f << std::hex << "ea_end," << ea_end << ',' << edge_ready << ',' << allow_edge << '\n';
+                    
+                    f << std::hex << "pa_start," << pa_start << ',' << property_ready << ',' << allow_property << '\n';
+                    f << std::hex << "pa_end," << pa_end << ',' << property_ready << ',' << allow_property <<'\n';
+                    f << "*************************************************************************\n";
+                    f.close();
+                }
+                break;
+            default:
+                break;
+                
         }
     }
 
     ARRAY_TYPE what_is_it(IntPtr req_addr, int level=0)
     {
-        if(oa_start <= req_addr && offset_ready==0)
+        if(oa_start <= req_addr && allow_offset)
         {
             if(req_addr <= oa_end) 
             {
@@ -102,7 +125,7 @@ class ContextHint
             }
         }
 
-        else if(ea_start <= req_addr && edge_ready==0)
+        else if(ea_start <= req_addr && allow_edge)
         {
             if(req_addr <= ea_end) 
             {
@@ -111,7 +134,7 @@ class ContextHint
             }
         }
 
-        else if(pa_start <= req_addr && property_ready==0)
+        else if(pa_start <= req_addr && allow_property)
         {
             if(req_addr <= pa_end)
             {
