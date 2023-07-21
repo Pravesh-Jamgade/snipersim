@@ -59,31 +59,38 @@ class ContextHint
         switch(type)
         {
             case 1:
+                cout << "offset_start, "<< addr << '\n';
                 oa_start = addr;
                 offset_ready--;
                 break;
             case 2:
+                cout << "offset_end. "<< addr << '\n';
                 oa_end = addr;
                 offset_ready--;
                 break;
             case 3:
+                cout << "edge_start, "<< addr << '\n';
                 ea_start = addr;
                 edge_ready--;
                 break;
             case 4:
+                cout << "edge_end, "<< addr << '\n';
                 ea_end = addr;
                 edge_ready--;
                 break;
             case 5:
+                cout << "property_start, "<< addr << '\n';
                 pa_start = addr;
                 property_ready--;
                 break;
             case 6:
+                cout << "property_end, "<< addr << '\n';
                 pa_end = addr;
                 property_ready--;
                 break;
             case 765:
                 {
+                    cout << "FINALIZE\n";
                     if(offset_ready==0) 
                         allow_offset = true;
                     
