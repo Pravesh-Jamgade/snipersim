@@ -104,7 +104,7 @@ use_pid = None
 tracegen = None
 trace_extra_args = []
 verbose = False
-use_pa = False#True
+use_pa = True
 use_pinplay = False
 
 if not sys.argv[1:]:
