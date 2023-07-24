@@ -25,6 +25,8 @@ class ContextHint
 
     int* already_permitted;
 
+    map<UInt32, UInt32> super_user_tlb;
+
     ContextHint()
     {
         ea_start = ea_end = 0;
@@ -158,6 +160,30 @@ class ContextHint
             }
         }
         return ARRAY_TYPE::NONE;
+    }
+
+    ARRAY_TYPE what_is_it_pp_enbable(IntPtr pa)
+    {
+        //reconstruct va from pa-va mapping and po
+        UInt32 pp = pa >> 12;
+        UInt32 po = pa & ((1<<12)-1);
+        auto iter_pp = super_user_tlb.find(pp);
+        if(iter_pp == super_user_tlb.end())
+        {
+            exit(-1);
+        }
+        
+        UInt32 vp = iter_pp->second;
+        IntPtr va = (vp<<12) | po;
+        return what_is_it(va);
+    }
+
+    void add_tlb_entry(UInt32 va, UInt32 pa)
+    {
+        UInt32 vp = va >> 12;
+        UInt32 pp = pa >> 12;
+        super_user_tlb[pp]=vp;
+        cout  << "VA2PA: "<< va << "," << pa << '\n';
     }
 };
 
