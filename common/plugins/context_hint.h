@@ -180,10 +180,15 @@ class ContextHint
 
     void add_tlb_entry(UInt32 va, UInt32 pa)
     {
+        if(va != pa)
+        {
+            cout  << "VA2PA: "<< va << "," << pa << '\n';
+            exit(-1);
+        }
+        return;
         UInt32 vp = va >> 12;
         UInt32 pp = pa >> 12;
         super_user_tlb[pp]=vp;
-        cout  << "VA2PA: "<< va << "," << pa << '\n';
     }
 };
 
