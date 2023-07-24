@@ -92,7 +92,7 @@ UInt64 MagicServer::Magic_unlocked(thread_id_t thread_id, core_id_t core_id, UIn
       }
       case SIM_CMD_USER:
       {
-         Sim()->getContextHintObject()->set_context(arg0, arg1);
+         Sim()->getContextHintObject()->set_context(arg0, arg1, core_id);
          Sim()->getCoreManager()->set_base(arg0, arg1);
          MagicMarkerType args = { thread_id: thread_id, core_id: core_id, arg0: arg0, arg1: arg1, str: NULL };
          return Sim()->getHooksManager()->callHooks(HookType::HOOK_MAGIC_USER, (UInt64)&args, true /* expect return value */);

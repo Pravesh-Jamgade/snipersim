@@ -23,6 +23,8 @@ class ContextHint
 
     set<String> all_collected;
 
+    int* already_permitted;
+
     ContextHint()
     {
         ea_start = ea_end = 0;
@@ -31,66 +33,70 @@ class ContextHint
         
         edge_ready = offset_ready = property_ready = 2;
         allow_edge = allow_offset = allow_property = false;
+
+        already_permitted = (int*)calloc(sizeof(int)*100, 0);
     }
 
     ~ContextHint()
     {
         fstream f;
         f.open("userdebug.stat", std::fstream::in | std::fstream::out | std::fstream::app);
+        
+        f << "seen memory hierarhy, data types:\n";
         for(auto e: all_collected)
         {
             f << std::hex << e << '\n';
         }
         
-        f << std::hex << "oa_start," << oa_start << ',' << offset_ready << '\n';
-        f << std::hex << "oa_end," << oa_end << ',' << offset_ready <<'\n';
+        f << "\naddress, ready, allowed\n";
+        f << std::hex << "oa_start," << oa_start << ',' << offset_ready << ',' << allow_offset << '\n';
+        f << std::hex << "oa_end," << oa_end << ',' << offset_ready << ',' << allow_offset <<'\n';
 
-        f << std::hex << "ea_start," << ea_start << ',' << edge_ready <<'\n';
-        f << std::hex << "ea_end," << ea_end << ',' << edge_ready << '\n';
+        f << std::hex << "ea_start," << ea_start << ',' << edge_ready << ',' << allow_edge <<'\n';
+        f << std::hex << "ea_end," << ea_end << ',' << edge_ready << ',' << allow_edge << '\n';
         
-        f << std::hex << "pa_start," << pa_start << ',' << property_ready << '\n';
-        f << std::hex << "pa_end," << pa_end << ',' << property_ready << '\n';
+        f << std::hex << "pa_start," << pa_start << ',' << property_ready << ',' << allow_property << '\n';
+        f << std::hex << "pa_end," << pa_end << ',' << property_ready << ',' << allow_property << '\n';
 
         f.close();
     }
 
-    void set_context(int type, IntPtr addr)
+    void set_context(int type, IntPtr addr, int core_id)
     {
         switch(type)
         {
             case 1:
-                cout << "offset_start, "<< addr << '\n';
                 oa_start = addr;
                 offset_ready--;
                 break;
             case 2:
-                cout << "offset_end. "<< addr << '\n';
                 oa_end = addr;
                 offset_ready--;
                 break;
             case 3:
-                cout << "edge_start, "<< addr << '\n';
                 ea_start = addr;
                 edge_ready--;
                 break;
             case 4:
-                cout << "edge_end, "<< addr << '\n';
                 ea_end = addr;
                 edge_ready--;
                 break;
             case 5:
-                cout << "property_start, "<< addr << '\n';
                 pa_start = addr;
                 property_ready--;
                 break;
             case 6:
-                cout << "property_end, "<< addr << '\n';
                 pa_end = addr;
                 property_ready--;
                 break;
             case 765:
                 {
-                    cout << "FINALIZE\n";
+                    if(already_permitted[core_id])
+                        return;
+                    
+                    already_permitted[core_id] = true;
+
+                    cout << "core_id: " << core_id << ", FINALIZE\n";
                     if(offset_ready==0) 
                         allow_offset = true;
                     
@@ -103,6 +109,8 @@ class ContextHint
                     fstream f;
                     f.open("userdebug.stat", std::fstream::in | std::fstream::out | std::fstream::app);
                     f << "*************************************************************************\n";
+                    f << "core_id: " << core_id << '\n';
+                    f << "start, end, ready, allowed\n";
                     f << std::hex << "oa_start," << oa_start << ',' << offset_ready << ',' << allow_offset << '\n';
                     f << std::hex << "oa_end," << oa_end << ',' << offset_ready <<  ',' << allow_offset <<'\n';
 
