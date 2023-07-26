@@ -169,6 +169,7 @@ VOID Handler(CONTROLLER::EVENT_TYPE ev, VOID * v, CONTEXT * ctxt, VOID * ip, THR
 
 int main(int argc, char **argv)
 {
+   printf("Hello World\n");
 #if defined(SDE_INIT)
 	sde_pin_init(argc,argv);
 	sde_init();
