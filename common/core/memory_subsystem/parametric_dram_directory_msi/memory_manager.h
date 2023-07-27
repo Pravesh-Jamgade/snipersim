@@ -117,6 +117,59 @@ namespace ParametricDramDirectoryMSI
          void incrElapsedTime(MemComponent::component_t mem_component, CachePerfModel::CacheAccess_t access_type, ShmemPerfModel::Thread_t thread_num = ShmemPerfModel::NUM_CORE_THREADS);
 
          void Print_Range(IntPtr address, UInt32 offset, IntPtr va_address);
-         CQ vaQueue;
+   };
+
+   const int MAX_QUEUE_SIZE = 5;
+   class CircularQueue
+   {
+   private:
+      IntPtr queue[MAX_QUEUE_SIZE];
+      int front;
+      int rear;
+      int count;
+
+   public:
+      CircularQueue()
+      {
+         front = rear = 0;
+         count = 0;
+      }
+
+      bool isEmpty()
+      {
+         return count == 0;
+      }
+
+      bool isFull()
+      {
+         return count == MAX_QUEUE_SIZE;
+      }
+
+      void enqueue(IntPtr va_address)
+      {
+         if (isFull())
+               dequeue();
+
+         queue[rear] = va_address;
+         rear = (rear + 1) % MAX_QUEUE_SIZE;
+         count++;
+      }
+
+      void dequeue()
+      {
+         if (isEmpty())
+               return;
+
+         front = (front + 1) % MAX_QUEUE_SIZE;
+         count--;
+      }
+
+      IntPtr get(int index)
+      {
+         if (index < 0 || index >= count)
+               return 0;
+
+         return queue[(front + index) % MAX_QUEUE_SIZE];
+      }
    };
 }

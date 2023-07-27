@@ -27,6 +27,7 @@
 
 namespace ParametricDramDirectoryMSI
 {
+   CircularQueue vaQueue;
 
 std::map<CoreComponentType, CacheCntlr*> MemoryManager::m_all_cache_cntlrs;
 
@@ -426,8 +427,10 @@ MemoryManager::coreInitiateMemoryAccess(
    LOG_ASSERT_ERROR(mem_component <= m_last_level_cache,
       "Error: invalid mem_component (%d) for coreInitiateMemoryAccess", mem_component);
 
-   if(modeled == Core::MEM_MODELED_NONE)
+   if(modeled != Core::MEM_MODELED_NONE)
+   {
       Print_Range(address, offset, address);
+   }
 
    if (mem_component == MemComponent::L1_ICACHE && m_itlb)
       accessTLB(m_itlb, address, true, modeled);
@@ -445,51 +448,113 @@ MemoryManager::coreInitiateMemoryAccess(
 
 void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address)
 {
-  
-   if(address == va_address)
-   {
-   }
-   else 
-   {
-      std::cout << "MISMATCH\n";
-      exit(0);
-   }
-
    // int flag = 0;  //saurabh
-   for (int i = (vaQueue.ptr==-1)?0:vaQueue.ptr; i < MAX_QUEUE_SIZE && !vaQueue.isEmpty(); i++)
+   for (int i = 5; i > 0; i--)
    {
       IntPtr va = vaQueue.get(i);
-      if (((va_address - 48) == va) || Sim()->flag_a) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
+      if (((va_address - 48) == va)) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
       {
-         if(!Sim()->flag_a) 
+         for (int j = i-1; j > 0; j--)
          {
-            Sim()->flag_a = true;
-            vaQueue.ptr = i;
-         }
-
-         if (((va_address - 32) == va) || Sim()->flag_b)//56
-         {
-            if(!Sim()->flag_b) 
+            IntPtr vb = vaQueue.get(j);
+            if (((va_address - 32) == vb))//56
             {
-               Sim()->flag_b = true;
-               vaQueue.ptr = i;
-            }
-
-            if (((va_address - 76) == va) || Sim()->flag_c)//152
-            {
-               if(!Sim()->flag_c) 
+               for (int k = j-1; k > 0; k--)
                {
-                  Sim()->flag_c = true;
-                  vaQueue.ptr = i;
-               }
-               
-               std::cout<<"[+++++++++]\n";
-               std::cout<<"[TRACKING] "<<va_address<<'\n';
-            }            
+                  IntPtr vc = vaQueue.get(k);
+                  if (((va_address - 76) == vc))//152
+                  {
+                     switch(Sim()->flag_N)
+                     {
+                        case 0:
+                        {
+                           Sim()->flag_N++;
+                           std::cout << i << " " << j << " " << k << " no : 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           break;
+                        }
+                        case 1:
+                        {
+                           Sim()->flag_N++;
+                           std::cout << i << " " << j << " " << k << " Start Neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           Sim()->Virtual_Neigh_Start = address;
+                           break;
+                        }
+                        case 2:
+                        {
+                           // Sim()->flag_N++;
+                           Sim()->Virtual_Neigh_End = address;
+                           std::cout << i << " " << j << " " << k << " End Neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           break;
+                        }
+                        default:
+                           printf("default Case");
+
+                     }// break;                     
+                  } //if (Sim()->flag_N == 2) break;                  
+               }            
+                           
+            } //if (Sim()->flag_N == 2) break;
          }
+      
+      }//if (Sim()->flag_N == 1) break;
+      else
+      {   
+         if (((va_address - 96) == va)) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
+         {
+            for (int j = i-1; j > 0; j--)
+            {
+               IntPtr vb = vaQueue.get(j);
+               if (((va_address - 64) == vb))//56
+               {
+                  for (int k = j-1; k > 0; k--)
+                  {
+                     IntPtr vc = vaQueue.get(k);
+                     if (((va_address - 152) == vc))//152
+                     {
+                        printf("we are in \n");
+                        switch((Sim()->flag_I))
+                        {
+                           // case 0:
+                           // {
+                           //    Sim()->flag_I++;
+                           //    std::cout << i << " " << j << " " << k << " no : 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           //    break;
+                           // }
+                           case 0:
+                           {
+                              Sim()->flag_I++;
+                              std::cout << i << " " << j << " " << k << " Start Index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                              Sim()->Virtual_Index_Start = address;
+                              break;
+                           }
+                           case 1:
+                           {
+                              // Sim()->flag_I++;
+                              Sim()->Virtual_Index_End = address;
+                              std::cout << i << " " << j << " " << k << " End Index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                              break;
+                           }
+                           default:
+                              printf("default Case");
+
+                        }// break;                     
+                     } //if (Sim()->flag_I == 3) break;                  
+                  }            
+                              
+               } //if (Sim()->flag_I == 2) break;
+            }
+         
+         } //if (Sim()->flag_I == 1) break;
       }
+
+
    }
    vaQueue.enqueue(va_address);
+   
+   // if(Sim()->flag == 1)
+   // {
+   //    std::cout << "Virtual_Address: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+   // }
 }
 
 void

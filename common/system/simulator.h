@@ -83,13 +83,28 @@ public:
    void createDecoder();
    dl::Decoder *getDecoder();
 
-   //saurabh
-   int Neigh_count_On_Hit = 0;
-   int Neigh_count_On_Miss = 0;
-   int Index_count_On_Hit = 0;
-   int Index_count_On_Miss = 0;
-   int flag =0;
-   int flag_a, flag_b, flag_c = 0;
+   //*
+   void set_context(int type, uint64_t addr);
+
+   // saurabh
+   IntPtr Neigh_count_On_Total_Access = 0;
+   IntPtr Neigh_count_On_Hit_L1_I = 0;
+   IntPtr Neigh_count_On_Hit_L1_D = 0;
+   IntPtr Neigh_count_On_Hit_L2 = 0;
+   IntPtr Neigh_count_On_Hit_L3 = 0;
+   IntPtr Neigh_count_On_Hit_L4 = 0;
+   IntPtr Neigh_count_On_Hit_else = 0;
+   IntPtr Neigh_count_On_Miss = 0;
+   IntPtr Index_count_On_Total_Access = 0;
+   IntPtr Index_count_On_Hit_L1_I = 0;
+   IntPtr Index_count_On_Hit_L1_D = 0;
+   IntPtr Index_count_On_Hit_L2 = 0;
+   IntPtr Index_count_On_Hit_L3 = 0;
+   IntPtr Index_count_On_Hit_L4 = 0;
+   IntPtr Index_count_On_Hit_else = 0;
+   IntPtr Index_count_On_Miss = 0;
+   int flag_N =0;
+   int flag_I =0;
    IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
    IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
    //saurabh

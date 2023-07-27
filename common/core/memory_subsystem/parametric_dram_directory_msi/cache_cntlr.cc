@@ -2112,6 +2112,29 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
 
    cleanupMshr();
 
+     //sauabh
+   if ((address >= Sim()->Virtual_Neigh_Start) && (address <= Sim()->Virtual_Neigh_End))
+   {
+      if (cache_hit)
+      {
+      }
+      else
+      {
+
+      }
+   }
+   else if ((address >= Sim()->Virtual_Index_Start) && (address <= Sim()->Virtual_Index_End))
+   {
+      if (cache_hit)
+      {
+
+      }
+      else
+      {
+
+      }
+   }
+   
    #ifdef ENABLE_TRANSITIONS
    transition(
       address,
