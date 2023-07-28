@@ -14,13 +14,14 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y \
     automake \
     build-essential \
+    cmake \
     curl \
     wget \
     libboost-dev \
     libsqlite3-dev \
     zlib1g-dev \
     libbz2-dev \
-    g++-4.8 \
+    g++-5 \
  && rm -rf /var/lib/apt/lists/*
 # For building RISC-V Tools
 RUN apt-get update && apt-get install -y \
@@ -48,5 +49,8 @@ RUN apt-get update && apt-get install -y \
 # Helper utilities
 RUN apt-get update && apt-get install -y \
     gdb \
+    gfortran \
     git \
+    g++-9 \
+    vim \
  && rm -rf /var/lib/apt/lists/*

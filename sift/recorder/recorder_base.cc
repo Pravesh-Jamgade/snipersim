@@ -154,7 +154,8 @@ UINT32 addMemoryModeling(INS ins)
 
    if (INS_IsMemoryRead (ins) || INS_IsMemoryWrite (ins))
    {
-      for (unsigned int i = 0; i < INS_MemoryOperandCount(ins); i++)
+      UINT32 max_op_count = std::min<UINT32>(INS_MemoryOperandCount(ins), Sift::MAX_DYNAMIC_ADDRESSES);
+      for (unsigned int i = 0; i < max_op_count; i++)
       {
          INS_InsertCall(ins, IPOINT_BEFORE,
                AFUNPTR(handleMemory),
@@ -163,6 +164,10 @@ UINT32 addMemoryModeling(INS ins)
                IARG_END);
          num_addresses++;
       }
+   }
+   if (INS_MemoryOperandCount(ins) > Sift::MAX_DYNAMIC_ADDRESSES)
+   {
+      std::cerr << "[SIFT_RECORDER] Unable to report all dynamic addresses (" << Sift::MAX_DYNAMIC_ADDRESSES << "/" << INS_MemoryOperandCount(ins) << ") for instruction 0x" << std::hex << INS_Address(ins) << std::dec << "\n";
    }
    sift_assert(num_addresses <= Sift::MAX_DYNAMIC_ADDRESSES);
 
@@ -245,7 +250,7 @@ static VOID traceCallback(TRACE trace, void *v)
 
             bool is_branch = INS_IsBranch(ins) && INS_HasFallThrough(ins);
 
-            if (is_branch)
+            if (is_branch && INS_IsValidForIpointTakenBranch(ins) && INS_IsValidForIpointAfter(ins))
             {
                insertCall(ins, IPOINT_AFTER,        num_addresses, true  /* is_branch */, false /* taken */);
                insertCall(ins, IPOINT_TAKEN_BRANCH, num_addresses, true  /* is_branch */, true  /* taken */);
@@ -254,7 +259,7 @@ static VOID traceCallback(TRACE trace, void *v)
             {
                // Whenever possible, use IPOINT_AFTER as this allows us to process addresses after the application has used them.
                // This ensures that their logical to physical mapping has been set up.
-               insertCall(ins, INS_HasFallThrough(ins) ? IPOINT_AFTER : IPOINT_BEFORE, num_addresses, false /* is_branch */, false /* taken */);
+               insertCall(ins, INS_IsValidForIpointAfter(ins) ? IPOINT_AFTER : IPOINT_BEFORE, num_addresses, false /* is_branch */, false /* taken */);
             }
 
             if (ins == BBL_InsTail(bbl))
