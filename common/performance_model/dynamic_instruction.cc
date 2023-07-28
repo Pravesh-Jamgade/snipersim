@@ -30,7 +30,7 @@ SubsecondTime DynamicInstruction::getBranchCost(Core *core, bool *p_is_mispredic
    BranchPredictor *bp = perf->getBranchPredictor();
    const ComponentPeriod *period = core->getDvfsDomain();
 
-   bool is_mispredict = core->accessBranchPredictor(eip, branch_info.taken, branch_info.is_indirect, branch_info.target);
+   bool is_mispredict = core->accessBranchPredictor(eip, branch_info.taken, branch_info.target);
    UInt64 cost = is_mispredict ? bp->getMispredictPenalty() : 1;
 
    if (p_is_mispredict)
@@ -51,6 +51,7 @@ void DynamicInstruction::accessMemory(Core *core)
                :*/ Core::NONE, // Just as in pin/lite/memory_modeling.cc, make the second part of an atomic update implicit
             memory_info[idx].dir == Operand::READ ? (instruction->isAtomic() ? Core::READ_EX : Core::READ) : Core::WRITE,
             memory_info[idx].addr,
+            memory_info[idx].va_addr,     //saurabh pass va
             NULL,
             memory_info[idx].size,
             Core::MEM_MODELED_RETURN,
@@ -58,11 +59,13 @@ void DynamicInstruction::accessMemory(Core *core)
          );
          memory_info[idx].latency = res.latency;
          memory_info[idx].hit_where = res.hit_where;
+         // std::cout << "MemoryResult" << std::endl;          //saurabh
       }
       else
       {
          memory_info[idx].latency = 1 * core->getDvfsDomain()->getPeriod(); // 1 cycle latency
          memory_info[idx].hit_where = HitWhere::PREDICATE_FALSE;
       }
+      // std::cout << " Dynamic_memory_Access Physical_ADD: 0x" << std::hex << memory_info[idx].addr << " Virtual_ADD: 0x" << memory_info[idx].va_addr << std::dec << " Operation: " << memory_info[idx].dir << std::endl;  //saurabh
    }
 }

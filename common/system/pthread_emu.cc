@@ -121,7 +121,7 @@ IntPtr MutexLock (pthread_mutex_t *mux)
    pthread_mutex_t _mux;
 
    /* Model the lock cmpxchg(mux) inside the real pthread_mutex_lock/lll_lock */
-   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);  //saurabh rep
 
    updateState(core, STATE_WAITING);
    SubsecondTime delay = CarbonMutexLock((carbon_mutex_t*) mux, lat.latency);
@@ -129,7 +129,7 @@ IntPtr MutexLock (pthread_mutex_t *mux)
    MemoryResult lat1 = makeMemoryResult(HitWhere::UNKNOWN, SubsecondTime::Zero());
    if (delay > SubsecondTime::Zero()) { /* Assume in the uncontended case, nothing (not the (system) network, nor the MCPs SyncServer) adds any delay */
       /* Model the lock addw(hb->spinlock) inside the futex_wake syscall */
-      lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) futexHbAddress(mux), NULL, sizeof (UInt32), Core::MEM_MODELED_FENCED);
+      lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) futexHbAddress(mux),(IntPtr) futexHbAddress(mux), NULL, sizeof (UInt32), Core::MEM_MODELED_FENCED);  //saurabh rep
       pthread_counters[core->getId()].pthread_mutex_lock_contended++;
    }
 
@@ -148,7 +148,7 @@ IntPtr MutexTrylock (pthread_mutex_t *mux)
    pthread_mutex_t _mux;
 
    /* Model the lock cmpxchg(mux) inside the real pthread_mutex_trylock/lll_trylock */
-   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);  //saurabh rep
 
    updateState(core, STATE_WAITING);
    SubsecondTime res = CarbonMutexTrylock((carbon_mutex_t*) mux);
@@ -167,7 +167,7 @@ IntPtr MutexUnlock (pthread_mutex_t *mux)
    pthread_mutex_t _mux;
 
    /* Model the lock sub(mux) inside the real pthread_mutex_unlock/lll_unlock */
-   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mux, (IntPtr) mux, (char *) &_mux, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);   //saurabh rep
 
    SubsecondTime delay = CarbonMutexUnlock((carbon_mutex_t*) mux, lat.latency);
 
@@ -177,7 +177,7 @@ IntPtr MutexUnlock (pthread_mutex_t *mux)
       // TODO: the latency hit for this should actually be while still holding the lock.
       //   But we can't request the latency until we've contacted the server (which already releases the lock) to tell us whether it's contended
       //   Also, no-one is currently spinning on this (and keeping the line in shared state) -- in fact, we may have even been the last ones to have used it in our matching pthread_mutex_lock call
-      lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) futexHbAddress(mux), NULL, sizeof (UInt32), Core::MEM_MODELED_FENCED);
+      lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) futexHbAddress(mux), (IntPtr) futexHbAddress(mux), NULL, sizeof (UInt32), Core::MEM_MODELED_FENCED);      //saurabh rep
       pthread_counters[core->getId()].pthread_mutex_unlock_contended++;
    }
 
@@ -213,8 +213,8 @@ IntPtr CondWait (pthread_cond_t *cond, pthread_mutex_t *mutex)
    pthread_mutex_t _mutex;
 
    /* Model the locked instructions and writes inside the real pthread_cond_wait */
-   MemoryResult lat2 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mutex, (char *) &_mutex, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);
-   MemoryResult lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond, (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_TIME);
+   MemoryResult lat2 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) mutex, (IntPtr) mutex, (char *) &_mutex, sizeof (pthread_mutex_t), Core::MEM_MODELED_FENCED);      //saurabh rep
+   MemoryResult lat1 = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond, (IntPtr) cond, (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_TIME);         //saurabh rep
 
    updateState(core, STATE_WAITING);
    SubsecondTime delay = CarbonCondWait ((carbon_cond_t*) cond, (carbon_mutex_t*) mutex);
@@ -232,7 +232,7 @@ IntPtr CondSignal (pthread_cond_t *cond)
    pthread_cond_t _cond;
 
    /* Model the locked instructions and writes inside the real pthread_cond_signal */
-   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond, (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond, (IntPtr) cond, (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_FENCED);     //saurabh rep
 
    SubsecondTime delay = CarbonCondSignal ((carbon_cond_t*) cond);
 
@@ -248,7 +248,7 @@ IntPtr CondBroadcast (pthread_cond_t *cond)
    pthread_cond_t _cond;
 
    /* Model the locked instructions and writes inside the real pthread_cond_broadcast */
-   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond, (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory(Core::NONE, Core::READ_EX, (IntPtr) cond,(IntPtr) cond,  (char *) &_cond, sizeof (pthread_cond_t), Core::MEM_MODELED_FENCED);     //saurabh rep
 
    SubsecondTime delay = CarbonCondBroadcast ((carbon_cond_t*) cond);
 
@@ -272,9 +272,9 @@ IntPtr BarrierInit (pthread_barrier_t *barrier, pthread_barrierattr_t *attribute
 
    Core *core = Sim()->getCoreManager()->getCurrentCore();
    assert (core);
-   core->accessMemory (Core::NONE, Core::READ, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf));
+   core->accessMemory (Core::NONE, Core::READ, (IntPtr) barrier, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf));        //saurabh rep
    CarbonBarrierInit (&barrier_buf, count);
-   core->accessMemory (Core::NONE, Core::WRITE, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf));
+   core->accessMemory (Core::NONE, Core::WRITE, (IntPtr) barrier, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf));       //saurabh rep
 
    return 0;
 }
@@ -288,7 +288,7 @@ IntPtr BarrierWait (pthread_barrier_t *barrier)
 
    /* Use READ_EX rather than READ since a real pthread_barrier_wait() would write to barrier, so we need the lines in M state.
       Also use MEM_MODELED_FENCED since there is a lock cmpxchg instruction in the implementation of pthread_barrier_wait */
-   MemoryResult lat = core->accessMemory (Core::NONE, Core::READ_EX, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf), Core::MEM_MODELED_FENCED);
+   MemoryResult lat = core->accessMemory (Core::NONE, Core::READ_EX, (IntPtr) barrier, (IntPtr) barrier, (char*) &barrier_buf, sizeof (barrier_buf), Core::MEM_MODELED_FENCED);     //sautabh rep
 
    updateState(core, STATE_WAITING);
    SubsecondTime delay = CarbonBarrierWait (&barrier_buf);

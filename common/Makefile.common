@@ -20,23 +20,11 @@ ifeq ($(SNIPER_TARGET_ARCH),ia32)
   LD_FLAGS += -m32
 endif
 ifeq ($(SNIPER_TARGET_ARCH),intel64)
-  CXXFLAGS += -fPIC -DTARGET_INTEL64 -DTARGET_IA32E
+  CXXFLAGS += -fPIC -DTARGET_INTEL64
   LD_FLAGS +=
 endif
 
 CXXFLAGS += -DPIN_REV=$(shell $(SIM_ROOT)/tools/pinversion.py $(PIN_HOME) | cut -d. -f3)
-
-ifeq ($(BUILD_RISCV),0)
-CXXFLAGS += -DSNIPER_RISCV=0
-else
-CXXFLAGS += -DSNIPER_RISCV=1
-endif
-
-ifeq ($(BUILD_ARM),0)
-CXXFLAGS += -DSNIPER_ARM=0
-else
-CXXFLAGS += -DSNIPER_ARM=1
-endif
 
 include $(SIM_ROOT)/Makefile.config
 
@@ -58,7 +46,7 @@ export LD_LIBRARY_PATH := $(SIM_ROOT)/lib:$(LD_LIBRARY_PATH)
 # Include paths
 CPPFLAGS+=$(foreach dir,$(INCLUDE_DIRECTORIES),-I$(dir)) \
           -I$(SIM_ROOT)/python_kit/$(SNIPER_TARGET_ARCH)/include/python2.7 \
-          -I$(SIM_ROOT)/capstone/include -I$(SIM_ROOT)/capstone/include/capstone 
+          -I$(SIM_ROOT)/capstone/include 
 
 CXXFLAGS+=-c \
           -Wall -Wextra -Wcast-align -Wno-unused-parameter -Wno-unknown-pragmas -std=c++11 -fno-strict-aliasing $(OPT_CFLAGS) #-Werror	  

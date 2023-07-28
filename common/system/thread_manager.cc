@@ -167,7 +167,7 @@ void ThreadManager::onThreadExit(thread_id_t thread_id)
    if (thread->m_os_info.clear_tid)
    {
       uint32_t zero = 0;
-      core->accessMemory(Core::NONE, Core::WRITE, thread->m_os_info.tid_ptr, (char*)&zero, sizeof(zero));
+      core->accessMemory(Core::NONE, Core::WRITE, thread->m_os_info.tid_ptr, thread->m_os_info.tid_ptr, (char*)&zero, sizeof(zero));      //saurabh rep
 
       SubsecondTime end_time; // ignored
       Sim()->getSyscallServer()->futexWake(thread_id, (int*)thread->m_os_info.tid_ptr, 1, FUTEX_BITSET_MATCH_ANY, time, end_time);

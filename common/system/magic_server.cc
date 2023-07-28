@@ -66,7 +66,7 @@ UInt64 MagicServer::Magic_unlocked(thread_id_t thread_id, core_id_t core_id, UIn
       {
          char str[256];
          Core *core = Sim()->getCoreManager()->getCoreFromID(core_id);
-         core->accessMemory(Core::NONE, Core::READ, arg1, str, 256, Core::MEM_MODELED_NONE);
+         core->accessMemory(Core::NONE, Core::READ, arg1, arg1, str, 256, Core::MEM_MODELED_NONE);    //saurabh rep
          str[255] = '\0';
 
          MagicMarkerType args = { thread_id: thread_id, core_id: core_id, arg0: arg0, arg1: 0, str: str };
@@ -77,7 +77,7 @@ UInt64 MagicServer::Magic_unlocked(thread_id_t thread_id, core_id_t core_id, UIn
       {
          char str[256];
          Core *core = Sim()->getCoreManager()->getCoreFromID(core_id);
-         core->accessMemory(Core::NONE, Core::READ, arg0, str, 256, Core::MEM_MODELED_NONE);
+         core->accessMemory(Core::NONE, Core::READ, arg0, arg0, str, 256, Core::MEM_MODELED_NONE);    //saurabh rep
          str[255] = '\0';
 
          Sim()->getStatsManager()->logEvent(StatsManager::EVENT_THREAD_NAME, SubsecondTime::MaxTime(), core_id, thread_id, 0, 0, str);
@@ -136,6 +136,39 @@ void MagicServer::disablePerformance()
    UInt64 ninstrs = getGlobalInstructionCount() - ninstrs_start;
    UInt64 cycles = SubsecondTime::divideRounded(Sim()->getClockSkewMinimizationServer()->getGlobalTime(),
                                                 Sim()->getCoreManager()->getCoreFromID(0)->getDvfsDomain()->getPeriod());
+   //saurabh
+   std::cout << std::hex << " Start_Neig_Address: " <<  Sim()->Virtual_Neigh_Start << " End_Neig_Address: " << Sim()->Virtual_Neigh_End <<  " Start_Index_Address: " << Sim()->Virtual_Index_Start << " End_Index_Address: " << Sim()->Virtual_Index_End << std::dec << std::endl; //saurabh
+   std::cout << std::endl;
+   std::cout << " Neigh_On_Total_Access: " << Sim()->Neigh_count_On_Total_Access << std::endl;
+   std::cout << " Neigh_Hit_On_L1_I: " << Sim()->Neigh_count_On_Hit_L1_I << std::endl;
+   std::cout << " Neigh_Hit_On_L1_D: " << Sim()->Neigh_count_On_Hit_L1_D << std::endl;
+   std::cout << " Neigh_Hit_On_L2: " << Sim()->Neigh_count_On_Hit_L2 << std::endl;
+   std::cout << " Neigh_Hit_On_L3: " << Sim()->Neigh_count_On_Hit_L3 << std::endl;
+   std::cout << " Neigh_Hit_On_L4: " << Sim()->Neigh_count_On_Hit_L4 << std::endl;
+   std::cout << " Neigh_Hit_On_else: " << Sim()->Neigh_count_On_Hit_else << std::endl;
+   std::cout << " Neigh_Miss_all: " << Sim()->Neigh_count_On_Miss << std::endl;
+   std::cout << std::endl;
+   std::cout << " Neigh_Miss_On_L1_I: " << Sim()->Neigh_count_On_Total_Access - (Sim()->Neigh_count_On_Hit_L1_D + Sim()->Neigh_count_On_Hit_L1_I) << std::endl;
+   std::cout << " Neigh_Miss_On_L1_D: " << Sim()->Neigh_count_On_Total_Access - (Sim()->Neigh_count_On_Hit_L1_D + Sim()->Neigh_count_On_Hit_L1_I) << std::endl;
+   std::cout << " Neigh_Miss_On_L2: " << Sim()->Neigh_count_On_Total_Access - (Sim()->Neigh_count_On_Hit_L1_D + Sim()->Neigh_count_On_Hit_L1_I) - Sim()->Neigh_count_On_Hit_L2  << std::endl;
+   std::cout << " Neigh_Miss_On_L3: " << Sim()->Neigh_count_On_Total_Access - (Sim()->Neigh_count_On_Hit_L1_D + Sim()->Neigh_count_On_Hit_L1_I) - Sim()->Neigh_count_On_Hit_L2  - Sim()->Neigh_count_On_Hit_L3 << std::endl;
+   std::cout << std::endl;
+   std::cout << " Index_On_Total_Access: " << Sim()->Index_count_On_Total_Access << std::endl;
+   std::cout << " Index_Hit_On_L1_I: " << Sim()->Index_count_On_Hit_L1_I << std::endl;
+   std::cout << " Index_Hit_On_L1_D: " << Sim()->Index_count_On_Hit_L1_D << std::endl;
+   std::cout << " Index_Hit_On_L2: " << Sim()->Index_count_On_Hit_L2 << std::endl;
+   std::cout << " Index_Hit_On_L3: " << Sim()->Index_count_On_Hit_L3 << std::endl;
+   std::cout << " Index_Hit_On_L4: " << Sim()->Index_count_On_Hit_L4 << std::endl;
+   std::cout << " Index_Hit_On_else: " << Sim()->Index_count_On_Hit_else << std::endl;
+   std::cout << " Index_Miss_all: " << Sim()->Index_count_On_Miss << std::endl;
+   std::cout << std::endl;
+   std::cout << " Index_Miss_On_L1_I: " << Sim()->Index_count_On_Total_Access - (Sim()->Index_count_On_Hit_L1_D + Sim()->Index_count_On_Hit_L1_I) << std::endl;
+   std::cout << " Index_Miss_On_L1_D: " << Sim()->Index_count_On_Total_Access - (Sim()->Index_count_On_Hit_L1_D + Sim()->Index_count_On_Hit_L1_I) << std::endl;
+   std::cout << " Index_Miss_On_L2: " << Sim()->Index_count_On_Total_Access - (Sim()->Index_count_On_Hit_L1_D + Sim()->Index_count_On_Hit_L1_I) - Sim()->Index_count_On_Hit_L2  << std::endl;
+   std::cout << " Index_Miss_On_L3: " << Sim()->Index_count_On_Total_Access - (Sim()->Index_count_On_Hit_L1_D + Sim()->Index_count_On_Hit_L1_I) - Sim()->Index_count_On_Hit_L2  - Sim()->Index_count_On_Hit_L3 << std::endl;
+   std::cout << std::endl;
+   //saurabh
+   
    printf("[SNIPER] Simulated %.1fM instructions, %.1fM cycles, %.2f IPC\n",
       ninstrs / 1e6,
       cycles / 1e6,

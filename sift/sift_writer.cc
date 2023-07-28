@@ -14,10 +14,6 @@
 #include <fcntl.h>
 #include <sys/param.h>
 
-#ifdef __GNUC__
-# include <features.h>
-#endif
-
 // Enable (>0) to print out everything we write
 #define VERBOSE 0
 #define VERBOSE_HEX 0
@@ -96,6 +92,7 @@ Sift::Writer::Writer(const char *filename, GetCodeFunc getCodeFunc, bool useComp
    #else
    Sift::Header hdr = { Sift::MagicNumber, 0 /* header size */, options, {} };
    #endif
+   
    output->write(reinterpret_cast<char*>(&hdr), sizeof(hdr));
    output->flush();
 
@@ -543,14 +540,8 @@ uint64_t Sift::Writer::Syscall(uint16_t syscall_number, const char *data, uint32
    {
       Record respRec;
       response->read(reinterpret_cast<char*>(&respRec), sizeof(rec.Other));
-      if (response->fail())
-      {
-         return 1;
-      }
-      if (respRec.Other.zero != 0)
-      {
-         return 1;
-      }
+      sift_assert(!response->fail());
+      sift_assert(respRec.Other.zero == 0);
 
       switch(respRec.Other.type)
       {
@@ -1013,6 +1004,7 @@ void Sift::Writer::handleMemoryRequest(Record &respRec)
 
 uint64_t Sift::Writer::va2pa_lookup(uint64_t vp)
 {
+   //std::cout << " WRITE " << std::hex << vp << " " << std::dec  << std::endl;  //saurabh
    // Ignore vsyscall range
    if (vp >= 0xffffffffff600ULL && vp < 0xfffffffffffffULL)
       return vp;

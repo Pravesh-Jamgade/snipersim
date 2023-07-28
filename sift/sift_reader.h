@@ -4,6 +4,10 @@
 #include "sift.h"
 #include "sift_format.h"
 
+//extern "C" {
+//#include "xed-interface.h"
+//}
+
 #include <unordered_map>
 #include <fstream>
 #include <cassert>
@@ -22,6 +26,7 @@ namespace Sift
          uint64_t addr;
          uint8_t size;
          uint8_t data[16];
+         //xed_decoded_inst_t xed_inst;
          const StaticInstruction *next;
    };
 
@@ -82,6 +87,9 @@ namespace Sift
          char *m_filename;
          char *m_response_filename;
 
+         //static bool xed_initialized;
+         //xed_state_t m_xed_state_init;
+
          uint64_t last_address;
          std::unordered_map<uint64_t, const uint8_t*> icache;
          std::unordered_map<uint64_t, const StaticInstruction*> scache;
@@ -124,6 +132,7 @@ namespace Sift
          uint64_t getLength();
          bool getTraceHasPhysicalAddresses() const { return m_trace_has_pa; }
          uint64_t va2pa(uint64_t va);
+         void print_vcache();       //saurabh
    };
 };
 

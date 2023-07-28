@@ -1,5 +1,5 @@
-﻿/*
- * This file is covered under the Interval Academic License, see LICENCE.academic
+/*
+ * This file is covered under the Interval Academic License, see LICENCE.interval
  */
 
 #include "rob_timer.h"
@@ -20,7 +20,6 @@
 
 // Define to get per-cycle printout of dispatch, issue, writeback stages
 //#define DEBUG_PERCYCLE
-//#define STOP_PERCYCLE
 
 // Define to not skip any cycles, but assert that the skip logic is working fine
 //#define ASSERT_SKIP
@@ -368,7 +367,7 @@ boost::tuple<uint64_t,SubsecondTime> RobTimer::simulate(const std::vector<Dynami
       }
 
       // If there are any dependencies to be removed, do this after iterating over them (don't mess with the list we're reading)
-      LOG_ASSERT_ERROR(num_dtr < sizeof(deps_to_remove)/sizeof(deps_to_remove[0]), "Have to remove more dependencies than I expected");
+      LOG_ASSERT_ERROR(num_dtr < sizeof(deps_to_remove)/sizeof(8), "Have to remove more dependencies than I expected");
       for(uint64_t i = 0; i < num_dtr; ++i)
          entry->uop->removeDependency(deps_to_remove[i]);
       if (entry->uop->getDependenciesLength() == 0)
@@ -378,7 +377,7 @@ boost::tuple<uint64_t,SubsecondTime> RobTimer::simulate(const std::vector<Dynami
       }
 
       #ifdef DEBUG_PERCYCLE
-         std::cout<<"** simulate: "<< entry->uop->getMicroOp()->toShortString(true) << std::endl << entry->uop->getMicroOp()->toString()<<std::endl;
+         std::cout<<"** simulate: "<<entry->uop->getMicroOp()->toShortString(true)<<std::endl;
       #endif
 
       m_uop_type_count[(*it)->getMicroOp()->getSubtype()]++;
@@ -390,12 +389,6 @@ boost::tuple<uint64_t,SubsecondTime> RobTimer::simulate(const std::vector<Dynami
          LOG_PRINT_WARNING_ONCE("Significant fraction of x87 instructions encountered, accuracy will be low. Compile without -mno-sse2 -mno-sse3 to avoid.");
    }
 
-#ifdef DEBUG_PERCYCLE
-#ifdef STOP_PERCYCLE
-   char a;
-   std::cin >> a;
-#endif
-#endif
    while (true)
    {
       uint64_t instructionsExecuted;
@@ -405,11 +398,6 @@ boost::tuple<uint64_t,SubsecondTime> RobTimer::simulate(const std::vector<Dynami
       totalLat += latency;
       if (latency == SubsecondTime::Zero())
          break;
-#ifdef DEBUG_PERCYCLE
-#ifdef STOP_PERCYCLE
-          std::cin >> a;
-#endif
-#endif
    }
 
    return boost::tuple<uint64_t,SubsecondTime>(totalInsnExec, totalLat);
@@ -588,6 +576,7 @@ void RobTimer::issueInstruction(uint64_t idx, SubsecondTime &next_event)
          Core::NONE,
          uop.getMicroOp()->isLoad() ? Core::READ : Core::WRITE,
          uop.getAddress().address,
+         uop.getAddress().virt,        //saurabh rep
          NULL,
          uop.getMicroOp()->getMemoryAccessSize(),
          Core::MEM_MODELED_RETURN,
@@ -640,7 +629,6 @@ void RobTimer::issueInstruction(uint64_t idx, SubsecondTime &next_event)
 
    entry->issued = now;
    entry->done = cycle_done;
-
    next_event = std::min(next_event, entry->done);
 
    --m_rs_entries_used;
@@ -892,7 +880,7 @@ void RobTimer::execute(uint64_t& instructionsExecuted, SubsecondTime& latency)
 
    #ifdef DEBUG_PERCYCLE
       std::cout<<std::endl;
-      std::cout<<"Running cycle "<<SubsecondTime::divideRounded(now, now.getPeriod())<<std::endl;
+      std::cout<<"Running cycle "<<now<<std::endl;
    #endif
 
 
@@ -928,14 +916,14 @@ void RobTimer::execute(uint64_t& instructionsExecuted, SubsecondTime& latency)
 
 
    #ifdef DEBUG_PERCYCLE
-      std::cout<<"Next event: D("<<SubsecondTime::divideRounded(next_dispatch, now.getPeriod())<<") I("<<SubsecondTime::divideRounded(next_issue, now.getPeriod())<<") C("<<SubsecondTime::divideRounded(next_commit, now.getPeriod())<<")"<<std::endl;
+      std::cout<<"Next event: D("<<next_dispatch<<") I("<<next_issue<<") C("<<next_commit<<")"<<std::endl;
    #endif
    SubsecondTime next_event = std::min(next_dispatch, std::min(next_issue, next_commit));
    SubsecondTime skip;
    if (next_event != SubsecondTime::MaxTime() && next_event > now + 1ul)
    {
       #ifdef DEBUG_PERCYCLE
-         std::cout<<"++ Skip "<<SubsecondTime::divideRounded(next_event - now, now.getPeriod())<<std::endl;
+         std::cout<<"++ Skip "<<(next_event - now)<<std::endl;
       #endif
       will_skip = true;
       skip = next_event - now;
@@ -988,12 +976,12 @@ void RobTimer::countOutstandingMemop(SubsecondTime time)
 
 void RobTimer::printRob()
 {
-   std::cout<<"** ROB state @ "<<SubsecondTime::divideRounded(now, now.getPeriod())<<"  size("<<m_num_in_rob<<") total("<<rob.size()<<")"<<std::endl;
+   std::cout<<"** ROB state @ "<<now<<"  size("<<m_num_in_rob<<") total("<<rob.size()<<")"<<std::endl;
    if (frontend_stalled_until > now)
    {
       std::cout<<"   Front-end stalled";
       if (frontend_stalled_until != SubsecondTime::MaxTime())
-         std::cout << " until " << SubsecondTime::divideRounded(frontend_stalled_until, now.getPeriod());
+         std::cout << " until " << frontend_stalled_until;
       if (in_icache_miss)
          std::cout << ", in I-cache miss";
       std::cout<<std::endl;
@@ -1007,22 +995,8 @@ void RobTimer::printRob()
 
       std::ostringstream state;
       if (i >= m_num_in_rob) state<<"PREROB ";
-      else if (e->done != SubsecondTime::MaxTime()) {
-         uint64_t cycles;
-         if (e->done > now)
-            cycles = SubsecondTime::divideRounded(e->done-now, now.getPeriod());
-         else
-            cycles = 0;
-         state<<"DONE@+"<<cycles<<"  ";
-      }
-      else if (e->ready != SubsecondTime::MaxTime()) {
-         uint64_t cycles;
-         if (e->ready > now)
-            cycles = SubsecondTime::divideRounded(e->ready-now, now.getPeriod());
-         else
-            cycles = 0;
-         state<<"READY@+"<<cycles<<"  ";
-      }
+      else if (e->done != SubsecondTime::MaxTime()) state<<"DONE@+"<<(e->done-now)<<"  ";
+      else if (e->ready != SubsecondTime::MaxTime()) state<<"READY@+"<<(e->ready-now)<<"  ";
       else
       {
          state<<"DEPS ";

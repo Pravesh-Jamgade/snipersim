@@ -25,6 +25,13 @@
 
 #include <x86_decoder.h>  // TODO remove when the decode function in microop perf model is adapted
 
+//#if PIN_REV >= 67254
+//extern "C" {
+//#include "xed-decoded-inst-api.h"
+//}
+//#endif
+
+//bool TraceThread::xed_initialized = false;
 int TraceThread::m_isa = 0;
 
 TraceThread::TraceThread(Thread *thread, SubsecondTime time_start, String tracefile, String responsefile, app_id_t app_id, bool cleanup)
@@ -49,6 +56,15 @@ TraceThread::TraceThread(Thread *thread, SubsecondTime time_start, String tracef
    , m_started(false)
    , m_stopped(false)
 {
+
+   //if (!xed_initialized)
+   //{
+   //   xed_tables_init();
+   //   #if PIN_REV < 65163
+   //   xed_decode_init();
+   //   #endif
+   //   xed_initialized = true;
+   //}
 
    m_trace.setHandleInstructionCountFunc(TraceThread::__handleInstructionCountFunc, this);
    m_trace.setHandleCacheOnlyFunc(TraceThread::__handleCacheOnlyFunc, this);
@@ -408,7 +424,10 @@ Instruction* TraceThread::decode(Sift::Instruction &inst)
    instruction->setAddress(va2pa(inst.sinst->addr));
    instruction->setSize(inst.sinst->size);
    instruction->setAtomic(dec_inst.is_atomic());
-   instruction->setDisassembly(dec_inst.disassembly_to_str().c_str());
+   char disassembly[64];
+   dec_inst.disassembly_to_str(disassembly, sizeof(disassembly));  
+   instruction->setDisassembly(disassembly);
+   //printf("%s\n", instruction->getDisassembly().c_str());
    
    const std::vector<const MicroOp*> *uops = InstructionDecoder::decode(inst.sinst->addr, &dec_inst, instruction);
    instruction->setMicroOps(uops);
@@ -465,7 +484,7 @@ Sift::Mode TraceThread::handleInstructionCountFunc(uint32_t icount)
    assert(false);
 }
 
-void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, uint64_t eip, uint64_t address)
+void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, uint64_t eip, uint64_t address)  //saurabh For Cache only
 {
    Core *core = m_thread->getCore();
    if (!core)
@@ -484,7 +503,7 @@ void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, 
       case Sift::CacheOnlyBranchNotTaken:
       {
          bool taken = (type == Sift::CacheOnlyBranchTaken);
-         bool mispredict = core->accessBranchPredictor(va2pa(eip), taken, false, va2pa(address));
+         bool mispredict = core->accessBranchPredictor(va2pa(eip), taken, va2pa(address));
          if (mispredict)
             core->getPerformanceModel()->handleBranchMispredict();
          break;
@@ -492,15 +511,20 @@ void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, 
 
       case Sift::CacheOnlyMemRead:
       case Sift::CacheOnlyMemWrite:
+      {
+         // if (Core::MEM_MODELED_COUNT == 1)
+            // std::cout << " In_Cache_Only MemReadWrite 0x" << std::hex << address << " " << std::dec  << std::endl;  //saurabh when cache
          core->accessMemory(
                Core::NONE,
                type == Sift::CacheOnlyMemRead ? Core::READ : Core::WRITE,
                va2pa(address),
+               (UInt64)address,
                NULL,
                4,
                Core::MEM_MODELED_COUNT,
                va2pa(eip));
          break;
+      }
 
       case Sift::CacheOnlyMemIcache:
          if (Sim()->getConfig()->getEnableICacheModeling())
@@ -535,7 +559,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
 
    if (inst.is_branch)
    {
-      bool mispredict = core->accessBranchPredictor(va2pa(inst.sinst->addr), inst.taken, dec_inst.is_indirect_branch(), va2pa(next_inst.sinst->addr));
+      bool mispredict = core->accessBranchPredictor(va2pa(inst.sinst->addr), inst.taken, va2pa(next_inst.sinst->addr));
       if (mispredict)
          core->getPerformanceModel()->handleBranchMispredict();
    }
@@ -571,6 +595,8 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                
                bool no_mapping = false;
                UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+               std::cout << " Cache_Warm-up_Mem:: READ Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << std::endl;  //saurabh when detail
+               
                if (no_mapping)
                   continue;
 
@@ -578,6 +604,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                      /*(is_atomic_update) ? Core::LOCK :*/ Core::NONE,
                      (is_atomic_update) ? Core::READ_EX : Core::READ,
                      pa,
+                     mem_address,
                      NULL,
                      Sim()->getDecoder()->size_mem_op(&dec_inst, mem_idx),
                      Core::MEM_MODELED_COUNT,
@@ -606,6 +633,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                
                bool no_mapping = false;
                UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+               std::cout << " Cache_Warm-up_Mem:: WRITE Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec  << std::endl;  //saurabh when detail
                if (no_mapping)
                   continue;
 
@@ -616,6 +644,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                         /*(is_atomic_update) ? Core::UNLOCK :*/ Core::NONE,
                         Core::WRITE,
                         pa,
+                        mem_address,
                         NULL,
                         Sim()->getDecoder()->size_mem_op(&dec_inst, mem_idx),
                         Core::MEM_MODELED_COUNT,
@@ -626,7 +655,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
    }
 }
 
-void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instruction &next_inst, PerformanceModel *prfmdl)
+void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instruction &next_inst, PerformanceModel *prfmdl)     //saurabh  in detail
 {
 
    // Set up instruction
@@ -643,7 +672,7 @@ void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instr
 
    if (inst.is_branch)
    {
-      dynins->addBranch(inst.taken, va2pa(next_inst.sinst->addr), dec_inst.is_indirect_branch());
+      dynins->addBranch(inst.taken, va2pa(next_inst.sinst->addr));
    }
 
    // Ignore memory-referencing operands in NOP instructions
@@ -653,7 +682,7 @@ void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instr
 
       for(uint32_t mem_idx = 0; mem_idx < Sim()->getDecoder()->num_memory_operands(&dec_inst); ++mem_idx)
       {
-         if (Sim()->getDecoder()->op_read_mem(&dec_inst, mem_idx))
+         if (Sim()->getDecoder()->op_read_mem(&dec_inst, mem_idx))         
          {
             addDetailedMemoryInfo(dynins, inst, dec_inst, mem_idx, Operand::READ, is_prefetch, prfmdl);
          }
@@ -691,10 +720,72 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
       assert(mem_idx < inst.num_addresses);
       mem_address = inst.addresses[mem_idx];
    }
-               
+          
    bool no_mapping = false;
    UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+/*
+   // Array 1 map
+   auto it1 = Array_1_Start.find(mem_address);
+   if (it1 != Array_1_Start.end())
+   {
+      it1->second++;
+   }
+   else 
+   {
+      Array_1_Start[mem_address] = 1;
+   }
+   // Array 2 map
+   auto it2 = Array_2_Start.find(mem_address);
+   if (it2 != Array_2_Start.end())
+   {
+      it2->second++;
+   }
+   else 
+   {
+      Array_2_Start[mem_address] = 1;
+   }
+   // Array 3 map
+   auto it3 = Array_3_Start.find(mem_address);
+   if (it3 != Array_3_Start.end())
+   {
+      it3->second++;
+   }
+   else 
+   {
+      Array_3_Start[mem_address] = 1;
+   }
 
+   auto it4 = Array_1_Start.find(mem_address);
+   if (it4 != Array_1_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it4->second == 7)
+      {
+         std::cout << "1st_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }
+
+   auto it5 = Array_2_Start.find(mem_address);
+   if (it5 != Array_2_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it5->second == 17)
+      {
+         std::cout << "2nd_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }
+
+   auto it6 = Array_3_Start.find(mem_address);
+   if (it6 != Array_3_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it6->second == 29)
+      {
+         std::cout << "3rd_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }   
+   va_prev = mem_address; //saurabh
+*/
    if (no_mapping)
    {
       dynins->addMemory(
@@ -704,7 +795,8 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
          Sim()->getDecoder()->size_mem_op(&decoded_inst, mem_idx),
          op_type,
          0,
-         HitWhere::PREFETCH_NO_MAPPING);
+         HitWhere::PREFETCH_NO_MAPPING,
+         mem_address);           //saurabh looking in detail
    }
    else
    {
@@ -715,7 +807,8 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
          Sim()->getDecoder()->size_mem_op(&decoded_inst, mem_idx),
          op_type,
          0,
-         HitWhere::UNKNOWN);
+         HitWhere::UNKNOWN,
+         mem_address);
    }
 }
 
@@ -772,16 +865,12 @@ void TraceThread::run()
    Sift::Instruction inst, next_inst;
 
    bool have_first = m_trace.Read(inst);
+   // Received first instruction, let TraceManager know our SIFT connection is up and running
+   Sim()->getTraceManager()->signalStarted();
+   m_started = true;
 
    while(have_first && m_trace.Read(next_inst))
    {
-      if (!m_started)
-      {
-         // Received first instructions, let TraceManager know our SIFT connection is up and running
-         // Only enable once we have received two instructions, otherwise, we could deadlock
-         Sim()->getTraceManager()->signalStarted();
-         m_started = true;
-      }
       if (m_blocked)
       {
          unblock();
@@ -816,7 +905,7 @@ void TraceThread::run()
       m_bbv_end = inst.is_branch;
 
 
-      switch(Sim()->getInstrumentationMode())
+      switch(Sim()->getInstrumentationMode())            //saurabh
       {
          case InstMode::FAST_FORWARD:
             break;
@@ -850,6 +939,10 @@ void TraceThread::run()
 
       inst = next_inst;
    }
+
+   // std::cout << "V_CACHE" << std::endl;      //saurabh
+   // m_trace.print_vcache();                   //saurabh vcache_print
+
 
    printf("[TRACE:%u] -- %s --\n", m_thread->getId(), m_stop ? "STOP" : "DONE");
 
@@ -911,4 +1004,8 @@ void TraceThread::handleAccessMemory(Core::lock_signal_t lock_signal, Core::mem_
    }
 
    m_trace.AccessMemory(sift_lock_signal, sift_mem_op, d_addr, (uint8_t*)data_buffer, data_size);
+}
+void TraceThread::get_va_current()     //saurabh
+{
+   std::cout << "Virtual_Address: 0x" << std::hex << va_cur << std::dec << std::endl;
 }

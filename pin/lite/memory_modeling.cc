@@ -203,6 +203,7 @@ void handleMemoryReadDetailedIssue(THREADID thread_id, BOOL executing, ADDRINT e
             (is_atomic_update) ? Core::LOCK : Core::NONE,
             (is_atomic_update) ? Core::READ_EX : Core::READ,
             read_address,
+            read_address,        //saurabh rep
             NULL,
             read_data_size,
             eip ? Core::MEM_MODELED_RETURN : Core::MEM_MODELED_COUNT,
@@ -249,6 +250,7 @@ ADDRINT handleMemoryReadFaultinjection(THREADID thread_id, BOOL executing, ADDRI
             /*(is_atomic_update) ? Core::LOCK :*/ Core::NONE,
             (is_atomic_update) ? Core::READ_EX : Core::READ,
             read_address,
+            read_address,       //saurabh rep
             buf_fault,
             read_data_size,
             eip ? Core::MEM_MODELED_RETURN : Core::MEM_MODELED_COUNT,
@@ -335,6 +337,7 @@ void handleMemoryWriteDetailedIssue(THREADID thread_id, BOOL executing, ADDRINT 
             (is_atomic_update) ? Core::UNLOCK : Core::NONE,
             Core::WRITE,
             write_address,
+            write_address,          //saurabh rep
             NULL,
             write_data_size,
             eip ? Core::MEM_MODELED_RETURN : Core::MEM_MODELED_COUNT,
@@ -366,6 +369,7 @@ void handleMemoryWriteFaultinjection(THREADID thread_id, BOOL executing, ADDRINT
             /*(is_atomic_update) ? Core::UNLOCK :*/ Core::NONE,
             Core::WRITE,
             write_address,
+            write_address,    //saurabh rep
             g_zeros,
             write_data_size,
             Core::MEM_MODELED_NONE,
@@ -386,6 +390,7 @@ void handleMemoryWriteFaultinjection(THREADID thread_id, BOOL executing, ADDRINT
             /*(is_atomic_update) ? Core::UNLOCK :*/ Core::NONE,
             Core::WRITE,
             write_address,
+            write_address,       //saurabh rep
             g_zeros,
             write_data_size,
             eip ? Core::MEM_MODELED_RETURN : Core::MEM_MODELED_COUNT,

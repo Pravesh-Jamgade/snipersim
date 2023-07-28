@@ -420,23 +420,21 @@ MemoryManager::coreInitiateMemoryAccess(
       MemComponent::component_t mem_component,
       Core::lock_signal_t lock_signal,
       Core::mem_op_t mem_op_type,
-      IntPtr address, UInt32 offset,
+      IntPtr address, UInt32 offset, IntPtr va_address,
       Byte* data_buf, UInt32 data_length,
-      Core::MemModeled modeled)
+      Core::MemModeled modeled)              //saurabh
 {
    LOG_ASSERT_ERROR(mem_component <= m_last_level_cache,
       "Error: invalid mem_component (%d) for coreInitiateMemoryAccess", mem_component);
 
-   if(modeled != Core::MEM_MODELED_NONE)
-   {
-      Print_Range(address, offset, address);
-   }
+   // if(modeled != Core::MEM_MODELED_NONE)
+   Print_Range(address, offset, va_address);
 
    if (mem_component == MemComponent::L1_ICACHE && m_itlb)
-      accessTLB(m_itlb, address, true, modeled);
+      accessTLB(m_itlb, address, true, modeled, va_address);
    else if (mem_component == MemComponent::L1_DCACHE && m_dtlb)
-      accessTLB(m_dtlb, address, false, modeled);
-   
+      accessTLB(m_dtlb, address, false, modeled, va_address);                                //saurabh print all TLB
+
    return m_cache_cntlrs[mem_component]->processMemOpFromCore(
          lock_signal,
          mem_op_type,
@@ -704,9 +702,9 @@ MYLOG("bcast msg");
 }
 
 void
-MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled)
+MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled, IntPtr va_address)
 {
-   bool hit = tlb->lookup(address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD));
+   bool hit = tlb->lookup(address, va_address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD));
    if (hit == false
        && !(modeled == Core::MEM_MODELED_NONE || modeled == Core::MEM_MODELED_COUNT)
        && m_tlb_miss_penalty.getLatency() != SubsecondTime::Zero()

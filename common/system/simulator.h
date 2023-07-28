@@ -72,21 +72,7 @@ public:
    MemoryTracker *getMemoryTracker() { return m_memory_tracker; }
    void setMemoryTracker(MemoryTracker *memory_tracker) { m_memory_tracker = memory_tracker; }
 
-   bool isRunning() { return m_running; }
-   static void enablePerformanceModels();
-   static void disablePerformanceModels();
-
-   void setInstrumentationMode(InstMode::inst_mode_t new_mode, bool update_barrier);
-   InstMode::inst_mode_t getInstrumentationMode() { return InstMode::inst_mode; }
-
-   // Access to the Decoder library for the simulator run
-   void createDecoder();
-   dl::Decoder *getDecoder();
-
-   //*
-   void set_context(int type, uint64_t addr);
-
-   // saurabh
+   //saurabh
    IntPtr Neigh_count_On_Total_Access = 0;
    IntPtr Neigh_count_On_Hit_L1_I = 0;
    IntPtr Neigh_count_On_Hit_L1_D = 0;
@@ -108,6 +94,16 @@ public:
    IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
    IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
    //saurabh
+   bool isRunning() { return m_running; }
+   static void enablePerformanceModels();
+   static void disablePerformanceModels();
+
+   void setInstrumentationMode(InstMode::inst_mode_t new_mode, bool update_barrier);
+   InstMode::inst_mode_t getInstrumentationMode() { return InstMode::inst_mode; }
+
+   // Access to the Decoder library for the simulator run
+   void createDecoder();
+   dl::Decoder *getDecoder();
    
 private:
    Config m_config;

@@ -13,7 +13,7 @@ public:
    // 256 entries
    // 7-bit tag
    PentiumMIndirectBranchTargetBuffer()
-      : IndirectBranchTargetBuffer(256)
+      : IndirectBranchTargetBuffer(256,7)
    {}
 
 };

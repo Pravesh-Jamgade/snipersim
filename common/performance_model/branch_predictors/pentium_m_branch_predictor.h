@@ -7,7 +7,6 @@
 #include "pentium_m_branch_target_buffer.h"
 #include "pentium_m_bimodal_table.h"
 #include "pentium_m_loop_branch_predictor.h"
-#include "pentium_m_indirect_branch_target_buffer.h"
 
 #include <vector>
 
@@ -17,9 +16,9 @@ public:
    PentiumMBranchPredictor(String name, core_id_t core_id);
    ~PentiumMBranchPredictor();
 
-   bool predict(bool indirect, IntPtr ip, IntPtr target);
+   bool predict(IntPtr ip, IntPtr target);
 
-   void update(bool predicted, bool actual, bool indirect, IntPtr ip, IntPtr target);
+   void update(bool predicted, bool actual, IntPtr ip, IntPtr target);
 
 private:
 
@@ -30,8 +29,6 @@ private:
    PentiumMBranchTargetBuffer m_btb;
    PentiumMBimodalTable m_bimodal_table;
    PentiumMLoopBranchPredictor m_lpb;
-   PentiumMIndirectBranchTargetBuffer ibtb;
-
 
    IntPtr m_pir;
 

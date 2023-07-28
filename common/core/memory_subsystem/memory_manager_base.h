@@ -46,13 +46,13 @@ class MemoryManagerBase
             MemComponent::component_t mem_component,
             Core::lock_signal_t lock_signal,
             Core::mem_op_t mem_op_type,
-            IntPtr address, UInt32 offset,
+            IntPtr address, UInt32 offset, IntPtr va_address,
             Byte* data_buf, UInt32 data_length,
             Core::MemModeled modeled) = 0;
       virtual SubsecondTime coreInitiateMemoryAccessFast(
             bool icache,
             Core::mem_op_t mem_op_type,
-            IntPtr address)
+            IntPtr address, IntPtr va_address)        //saurabh
       {
          // Emulate fast interface by calling into slow interface
          SubsecondTime initial_time = getCore()->getPerformanceModel()->getElapsedTime();
@@ -62,7 +62,7 @@ class MemoryManagerBase
                icache ? MemComponent::L1_ICACHE : MemComponent::L1_DCACHE,
                Core::NONE,
                mem_op_type,
-               address - (address % getCacheBlockSize()), 0,
+               address - (address % getCacheBlockSize()), 0, va_address,
                NULL, getCacheBlockSize(),
                Core::MEM_MODELED_COUNT_TLBTIME);
 

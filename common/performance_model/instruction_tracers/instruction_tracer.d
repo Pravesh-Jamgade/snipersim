@@ -1,0 +1,36 @@
+/mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer.o /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer.d: $(wildcard \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer.cc \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/misc/itostr.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time_c.h \
+ /mnt/sdb1/snipersim/common/system/simulator.h \
+ /mnt/sdb1/snipersim/common/misc/config.h \
+ /mnt/sdb1/snipersim/common/system/clock_skew_minimization_object.h \
+ /mnt/sdb1/snipersim/common/misc/log.h \
+ /mnt/sdb1/snipersim/common/system/cache_efficiency_tracker.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_block_info.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_state.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_base.h \
+ /mnt/sdb1/snipersim/common/performance_model/hit_where.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/mem_component.h \
+ /mnt/sdb1/snipersim/common/core/core.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/network/packet_type.h \
+ /mnt/sdb1/snipersim/common/core/bbv_count.h \
+ /mnt/sdb1/snipersim/common/misc/cpuid.h \
+ /mnt/sdb1/snipersim/common/system/inst_mode.h \
+ /mnt/sdb1/snipersim/decoder_lib/decoder.h \
+ /mnt/sdb1/snipersim/common/config/config.hpp \
+ /mnt/sdb1/snipersim/common/config/key.hpp \
+ /mnt/sdb1/snipersim/common/config/section.hpp \
+ /mnt/sdb1/snipersim/common/config/config_exceptions.hpp \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer_fpstats.h \
+ /mnt/sdb1/snipersim/xed_kit/include/xed/xed-iclass-enum.h \
+ /mnt/sdb1/snipersim/xed_kit/include/xed/xed-common-hdrs.h \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer_print.h \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/loop_tracer.h \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/loop_profiler.h)

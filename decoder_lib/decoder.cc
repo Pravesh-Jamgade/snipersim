@@ -1,10 +1,7 @@
 #include "decoder.h"
 #include "x86_decoder.h"
-#if SNIPER_RISCV
+#if BUILD_RISCV
 #include "riscv_decoder.h"
-#endif
-#if SNIPER_ARM
-#include "arm_decoder.h"
 #endif
 
 namespace dl 
@@ -67,18 +64,11 @@ Decoder *DecoderFactory::CreateDecoder(dl_arch arch, dl_mode mode, dl_syntax syn
     case DL_ARCH_INTEL:
       return new X86Decoder(arch, mode, syntax);
     case DL_ARCH_RISCV:
-#if SNIPER_RISCV
+#if BUILD_RISCV
       return new RISCVDecoder(arch, mode, syntax);
 #else
       return NULL;
-#endif 
-    case DL_ARCH_ARMv7:
-    case DL_ARCH_ARMv8:
-#if SNIPER_ARM
-      return new ARMDecoder(arch, mode, syntax);
-#else
-      return NULL;
-#endif 
+#endif
   }
   return NULL;
 }
@@ -92,15 +82,8 @@ DecodedInst *DecoderFactory::CreateInstruction(Decoder * d, const uint8_t * code
     case DL_ARCH_INTEL:
       return new X86DecodedInst(d, code, size, addr);
     case DL_ARCH_RISCV:
-#if SNIPER_RISCV
+#if BUILD_RISCV
       return new RISCVDecodedInst(d, code, size, addr);
-#else
-      return NULL;
-#endif
-    case DL_ARCH_ARMv7:
-    case DL_ARCH_ARMv8:
-#if SNIPER_ARM
-      return new ARMDecodedInst(d, code, size, addr);
 #else
       return NULL;
 #endif

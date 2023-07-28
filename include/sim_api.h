@@ -22,7 +22,7 @@
 #define SIM_OPT_INSTRUMENT_WARMUP      1
 #define SIM_OPT_INSTRUMENT_FASTFORWARD 2
 
-#if defined(__aarch64__)
+#if defined(ARM_64)
 
 #define SimMagic0(cmd) ({                       \
    unsigned long _cmd = (cmd), _res;            \

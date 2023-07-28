@@ -125,26 +125,6 @@ Simulator::Simulator()
    , m_running(false)
    , m_inst_mode_output(true)
 {
-
-   Neigh_count_On_Total_Access = 0;
-   Neigh_count_On_Hit_L1_I = 0;
-   Neigh_count_On_Hit_L1_D = 0;
-   Neigh_count_On_Hit_L2 = 0;
-   Neigh_count_On_Hit_L3 = 0;
-   Neigh_count_On_Hit_L4 = 0;
-   Neigh_count_On_Hit_else = 0;
-   Neigh_count_On_Miss = 0;
-   Index_count_On_Total_Access = 0;
-   Index_count_On_Hit_L1_I = 0;
-   Index_count_On_Hit_L1_D = 0;
-   Index_count_On_Hit_L2 = 0;
-   Index_count_On_Hit_L3 = 0;
-   Index_count_On_Hit_L4 = 0;
-   Index_count_On_Hit_else = 0;
-   Index_count_On_Miss = 0;
-   
-   Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
-   Virtual_Index_Start = 0, Virtual_Index_End =0;
 }
 
 void Simulator::start()

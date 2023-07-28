@@ -42,9 +42,9 @@ KNOB<BOOL> KnobReplayer(KNOB_MODE_WRITEONCE, KNOB_FAMILY, KNOB_REPLAY_NAME, "0",
 
 KNOB<UINT64> KnobExtraePreLoaded(KNOB_MODE_WRITEONCE, "pintool", "extrae", "0", "Extrae preloaded");
 
-#ifdef PINPLAY
+#ifdef PINPLAY_SUPPORTED
 PINPLAY_ENGINE pinplay_engine;
-#endif /* PINPLAY */
+#endif /* PINPLAY_SUPPORTED */
 
 // INT32 app_id;
 // INT32 num_threads = 0;

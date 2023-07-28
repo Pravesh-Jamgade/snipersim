@@ -16,8 +16,6 @@
 
 #include <map>
 
-#include "circular_queue_plugin.h"
-
 class DramCache;
 class ShmemPerf;
 
@@ -62,7 +60,7 @@ namespace ParametricDramDirectoryMSI
          // Global map of all caches on all cores (within this process!)
          static CacheCntlrMap m_all_cache_cntlrs;
 
-         void accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled);
+         void accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled, IntPtr va_address);
 
       public:
          MemoryManager(Core* core, Network* network, ShmemPerfModel* shmem_perf_model);
@@ -88,10 +86,11 @@ namespace ParametricDramDirectoryMSI
                MemComponent::component_t mem_component,
                Core::lock_signal_t lock_signal,
                Core::mem_op_t mem_op_type,
-               IntPtr address, UInt32 offset,
+               IntPtr address, UInt32 offset, IntPtr va_address,
                Byte* data_buf, UInt32 data_length,
-               Core::MemModeled modeled);
+               Core::MemModeled modeled);          //saurabh
 
+         void Print_Range(IntPtr address, UInt32 offset, IntPtr va_address);
          void handleMsgFromNetwork(NetPacket& packet);
 
          void sendMsg(PrL1PrL2DramDirectoryMSI::ShmemMsg::msg_t msg_type, MemComponent::component_t sender_mem_component, MemComponent::component_t receiver_mem_component, core_id_t requester, core_id_t receiver, IntPtr address, Byte* data_buf = NULL, UInt32 data_length = 0, HitWhere::where_t where = HitWhere::UNKNOWN, ShmemPerf *perf = NULL, ShmemPerfModel::Thread_t thread_num = ShmemPerfModel::NUM_CORE_THREADS);
@@ -115,11 +114,10 @@ namespace ParametricDramDirectoryMSI
          SubsecondTime getCost(MemComponent::component_t mem_component, CachePerfModel::CacheAccess_t access_type);
          void incrElapsedTime(SubsecondTime latency, ShmemPerfModel::Thread_t thread_num = ShmemPerfModel::NUM_CORE_THREADS);
          void incrElapsedTime(MemComponent::component_t mem_component, CachePerfModel::CacheAccess_t access_type, ShmemPerfModel::Thread_t thread_num = ShmemPerfModel::NUM_CORE_THREADS);
-
-         void Print_Range(IntPtr address, UInt32 offset, IntPtr va_address);
    };
 
    const int MAX_QUEUE_SIZE = 5;
+
    class CircularQueue
    {
    private:

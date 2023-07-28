@@ -26,10 +26,7 @@ bool FrontendSyscallModelBase <T>::handleAccessMemory(void *arg, Sift::MemoryLoc
   // This operation does not occur very frequently, so this should not impact performance
   if (lock_signal == Sift::MemLock)
   {
-    if (m_options->get_verbose())
-    {
-      std::cerr << "Acquire memory lock in handleAccessMemory" << std::endl;
-    }
+    std::cerr << "Acquire memory lock in handleAccessMemory" << std::endl;
     m_access_memory_lock->acquire_lock(0);
   }
 
@@ -51,10 +48,8 @@ bool FrontendSyscallModelBase <T>::handleAccessMemory(void *arg, Sift::MemoryLoc
 
   if (lock_signal == Sift::MemUnlock)
   {
-    if (m_options->get_verbose())
-    {
-      std::cerr << "Release memory lock in handleAccessMemory" << std::endl;
-    }
+        std::cerr << "Release memory lock in handleAccessMemory" << std::endl;
+
     m_access_memory_lock->release_lock();
   }
   return true;
@@ -66,28 +61,20 @@ void FrontendSyscallModelBase <T>::setTID(threadid_t threadid)
 
    if (m_thread_data[threadid].should_send_threadinfo)
    {
-      if (m_options->get_verbose())
-      {
-         std::cerr << "Set TID for thread: " << threadid << std::endl;
-      }
+        std::cerr << "Set TID for thread: " << threadid << std::endl;
+
       m_thread_data[threadid].should_send_threadinfo = false;
 
       Sift::EmuRequest req;
       //Sift::EmuReply res;
       req.setthreadinfo.tid = syscall(__NR_gettid);  // obtains unique thread identifier on Linux
-      if (m_options->get_verbose())
-      {
-         std::cerr << "Setting TID: " << req.setthreadinfo.tid << std::endl;
-         if (!m_thread_data[threadid].output)
-            std::cerr << "No output yet" << std::endl;
-         else
-            std::cerr << "Output is open" << std::endl;
-      }
+      std::cerr << "Setting TID: " << req.setthreadinfo.tid << std::endl;
+      if (!m_thread_data[threadid].output)
+        std::cerr << "No output yet" << std::endl;
+      else
+        std::cerr << "Output is open" << std::endl;
       //m_thread_data[threadid].output->Emulate(Sift::EmuTypeSetThreadInfo, req, res);
-      if (m_options->get_verbose())
-      {
-         std::cerr << "TID is set" << std::endl;
-      }
+      std::cerr << "TID is set" << std::endl;
    }
 }
 
@@ -135,31 +122,16 @@ void FrontendSyscallModelBase <T>::doSyscall
                #elif defined(TARGET_INTEL64) || defined(X86_64)
                   addr_t tidptr = args[3];
                #endif
-               if (m_options->get_verbose())
-               {
-                  std::cerr << "[FRONTEND] Clone thread: going to acquire lock" << std::endl;
-               }
+              std::cerr << "[FRONTEND] Clone thread: going to acquire lock" << std::endl;
                m_new_threadid_lock->acquire_lock(threadid);
-               if (m_options->get_verbose())
-               {
-                  std::cerr << "[FRONTEND] Clone thread: pushing back tidptr" << std::endl;
-               }
+              std::cerr << "[FRONTEND] Clone thread: pushing back tidptr" << std::endl;
                tidptrs->push_back(tidptr);
-               if (m_options->get_verbose())
-               {
-                  std::cerr << "[FRONTEND] Clone thread: going to release lock" << std::endl;
-               }
+              std::cerr << "[FRONTEND] Clone thread: going to release lock" << std::endl;
                m_new_threadid_lock->release_lock();
-               if (m_options->get_verbose())
-               {
-                  std::cerr << "[FRONTEND] Clone thread: going to create new thread" << std::endl;
-               }
+              std::cerr << "[FRONTEND] Clone thread: going to create new thread" << std::endl;
                /* New thread */
                m_thread_data[threadid].output->NewThread();
-               if (m_options->get_verbose())
-               {
-                  std::cerr << "[FRONTEND] New thread created" << std::endl;
-               }
+               std::cerr << "[FRONTEND] New thread created" << std::endl;
             }
             else
             {

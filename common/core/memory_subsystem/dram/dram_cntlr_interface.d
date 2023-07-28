@@ -1,0 +1,35 @@
+/mnt/sdb1/snipersim/common/core/memory_subsystem/dram/dram_cntlr_interface.o /mnt/sdb1/snipersim/common/core/memory_subsystem/dram/dram_cntlr_interface.d: $(wildcard \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/dram/dram_cntlr_interface.cc \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/dram/dram_cntlr_interface.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/misc/itostr.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time_c.h \
+ /mnt/sdb1/snipersim/common/performance_model/hit_where.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/mem_component.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/shmem_msg.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/fast_nehalem/memory_manager.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/memory_manager_fast.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/memory_manager_base.h \
+ /mnt/sdb1/snipersim/common/core/core.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/network/packet_type.h \
+ /mnt/sdb1/snipersim/common/core/bbv_count.h \
+ /mnt/sdb1/snipersim/common/misc/cpuid.h \
+ /mnt/sdb1/snipersim/common/network/network.h \
+ /mnt/sdb1/snipersim/common/network/packet_type.h \
+ /mnt/sdb1/snipersim/common/misc/cond.h \
+ /mnt/sdb1/snipersim/common/transport/transport.h \
+ /mnt/sdb1/snipersim/common/network/network_model.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/mem_component.h \
+ /mnt/sdb1/snipersim/common/performance_model/performance_model.h \
+ /mnt/sdb1/snipersim/common/misc/mt_circular_queue.h \
+ /mnt/sdb1/snipersim/common/misc/circular_queue.h \
+ /mnt/sdb1/snipersim/common/misc/cond.h \
+ /mnt/sdb1/snipersim/common/performance_model/instruction_tracers/instruction_tracer.h \
+ /mnt/sdb1/snipersim/common/performance_model/hit_where.h \
+ /mnt/sdb1/snipersim/common/performance_model/shmem_perf_model.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/shmem_perf.h \
+ /mnt/sdb1/snipersim/common/misc/log.h)

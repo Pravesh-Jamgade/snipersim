@@ -1,5 +1,5 @@
 /*
- * This file is covered under the Interval Academic License, see LICENCE.academic
+ * This file is covered under the Interval Academic License, see LICENCE.interval
  */
 
 #include "interval_timer.h"
@@ -342,6 +342,7 @@ void IntervalTimer::issueMemOp(Windows::WindowEntry& micro_op)
          Core::NONE,
          micro_op.getMicroOp()->isLoad() ? Core::READ : Core::WRITE,
          micro_op.getDynMicroOp()->getAddress().address,
+         micro_op.getDynMicroOp()->getAddress().virt,             //saurabh repet
          NULL,
          micro_op.getMicroOp()->getMemoryAccessSize(),
          Core::MEM_MODELED_RETURN,

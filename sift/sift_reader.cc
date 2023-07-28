@@ -16,6 +16,8 @@
 #define VERBOSE_HEX 0
 #define VERBOSE_ICACHE 0
 
+//bool Sift::Reader::xed_initialized = false;
+
 Sift::Reader::Reader(const char *filename, const char *response_filename, uint32_t id)
    : input(NULL)
    , response(NULL)
@@ -49,6 +51,15 @@ Sift::Reader::Reader(const char *filename, const char *response_filename, uint32
    , m_last_sinst(NULL)
    , m_isa(0)
 {
+//   if (!xed_initialized)
+//   {
+//      xed_tables_init();
+//      #if PIN_REV < 65163
+//      xed_decode_init();
+//      #endif
+//      xed_initialized = true;
+//   }
+
    m_filename = strdup(filename);
    m_response_filename = strdup(response_filename);
 
@@ -121,8 +132,15 @@ bool Sift::Reader::initStream()
 
    if (hdr.options & ArchIA32)
    {
+      //xed_state_t init = { XED_MACHINE_MODE_LONG_COMPAT_32, XED_ADDRESS_WIDTH_32b };
+      //m_xed_state_init = init;
       hdr.options &= ~ArchIA32;
    }
+   //else
+   //{
+   //   xed_state_t init = { XED_MACHINE_MODE_LONG_64, XED_ADDRESS_WIDTH_64b };
+   //   m_xed_state_init = init;
+   //}
 
    if (hdr.options & PhysicalAddress)
    {
@@ -547,6 +565,8 @@ bool Sift::Reader::Read(Instruction &inst)
 
 bool Sift::Reader::AccessMemory(MemoryLockType lock_signal, MemoryOpType mem_op, uint64_t d_addr, uint8_t *data_buffer, uint32_t data_size)
 {
+   // std::cout << ((mem_op == MemRead) ? " READ " : " WRITE ") << std::hex << d_addr << " " << std::dec << data_size << std::endl;  //saurabh
+   // printf("%s - ADDR(%u), data_size(%lu) \n", ((mem_op == MemRead) ? "READ" : "WRITE"), d_addr, data_size);
    #if VERBOSE > 0
    if (mem_op == MemWrite)
       std::cerr << "[DEBUG:" << m_id << "] Write MemoryRequest - Write" << std::endl;
@@ -668,6 +688,11 @@ const Sift::StaticInstruction* Sift::Reader::staticInfoInstruction(uint64_t addr
       base_addr += ICACHE_SIZE;
    }
 
+   //xed_state_t xed_state = m_xed_state_init;
+   //xed_decoded_inst_zero_set_mode(const_cast<xed_decoded_inst_t*>(&sinst->xed_inst), &xed_state);
+   //xed_error_enum_t result = xed_decode(const_cast<xed_decoded_inst_t*>(&sinst->xed_inst), sinst->data, sinst->size);
+   //assert(result == XED_ERROR_NONE);
+
    return sinst;
 }
 
@@ -779,8 +804,9 @@ uint64_t Sift::Reader::getLength()
    return filesize;
 }
 
-uint64_t Sift::Reader::va2pa(uint64_t va)
+uint64_t Sift::Reader::va2pa(uint64_t va) //saurabh real va_2_pa call; ristricted till trace_thread
 {
+   // std::cout << " SIFT_READ " << m_trace_has_pa <<  " 0x" << std::hex << va << " " << std::dec  << std::endl;  //saurabh
    if (m_trace_has_pa)
    {
       intptr_t vp = va / PAGE_SIZE_SIFT;
@@ -800,4 +826,9 @@ uint64_t Sift::Reader::va2pa(uint64_t va)
    {
       return va;
    }
+}
+void Sift::Reader::print_vcache()            //saurabh
+{
+      for (auto i : vcache)
+        std::cout << std::hex << i.first << " ----> " << i.second << std::dec << std::endl;
 }

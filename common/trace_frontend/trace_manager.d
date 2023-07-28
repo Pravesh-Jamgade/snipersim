@@ -1,0 +1,43 @@
+/mnt/sdb1/snipersim/common/trace_frontend/trace_manager.o /mnt/sdb1/snipersim/common/trace_frontend/trace_manager.d: $(wildcard \
+ /mnt/sdb1/snipersim/common/trace_frontend/trace_manager.cc \
+ /mnt/sdb1/snipersim/common/trace_frontend/trace_manager.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/misc/semaphore.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/misc/itostr.h \
+ /mnt/sdb1/snipersim/common/misc/fixed_types.h \
+ /mnt/sdb1/snipersim/common/core/core.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/mem_component.h \
+ /mnt/sdb1/snipersim/common/misc/lock.h \
+ /mnt/sdb1/snipersim/common/network/packet_type.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time.h \
+ /mnt/sdb1/snipersim/common/misc/subsecond_time_c.h \
+ /mnt/sdb1/snipersim/common/core/bbv_count.h \
+ /mnt/sdb1/snipersim/common/misc/cpuid.h \
+ /mnt/sdb1/snipersim/common/performance_model/hit_where.h \
+ /mnt/sdb1/snipersim/common/misc/_thread.h \
+ /mnt/sdb1/snipersim/common/trace_frontend/trace_thread.h \
+ /mnt/sdb1/snipersim/common/core/thread.h \
+ /mnt/sdb1/snipersim/common/misc/cond.h \
+ /mnt/sdb1/snipersim/sift/sift_reader.h /mnt/sdb1/snipersim/sift/sift.h \
+ /mnt/sdb1/snipersim/sift/sift_format.h \
+ /mnt/sdb1/snipersim/common/performance_model/operand.h \
+ /mnt/sdb1/snipersim/decoder_lib/decoder.h \
+ /mnt/sdb1/snipersim/common/system/simulator.h \
+ /mnt/sdb1/snipersim/common/misc/config.h \
+ /mnt/sdb1/snipersim/common/system/clock_skew_minimization_object.h \
+ /mnt/sdb1/snipersim/common/misc/log.h \
+ /mnt/sdb1/snipersim/common/system/cache_efficiency_tracker.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_block_info.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_state.h \
+ /mnt/sdb1/snipersim/common/core/memory_subsystem/cache/cache_base.h \
+ /mnt/sdb1/snipersim/common/system/inst_mode.h \
+ /mnt/sdb1/snipersim/common/system/thread_manager.h \
+ /mnt/sdb1/snipersim/common/system/hooks_manager.h \
+ /mnt/sdb1/snipersim/common/system/thread_manager.h \
+ /mnt/sdb1/snipersim/common/config/config.hpp \
+ /mnt/sdb1/snipersim/common/config/key.hpp \
+ /mnt/sdb1/snipersim/common/config/section.hpp \
+ /mnt/sdb1/snipersim/common/config/config_exceptions.hpp \
+ /mnt/sdb1/snipersim/include/sim_api.h \
+ /mnt/sdb1/snipersim/common/misc/stats.h)

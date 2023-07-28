@@ -15,10 +15,10 @@ readMemory(PyObject *self, PyObject *args)
    LOG_ASSERT_ERROR(core != NULL, "Invalid core_id %d", core_id);
 
    char *buf = new char[size];
-   core->accessMemory(Core::NONE, Core::READ, address, buf, size, Core::MEM_MODELED_NONE);
+   core->accessMemory(Core::NONE, Core::READ, address, address, buf, size, Core::MEM_MODELED_NONE);      //saurabh rep
 
    PyObject *res = Py_BuildValue("s#", buf, size);
-   delete [] buf;
+   delete buf;
 
    return res;
 }
@@ -40,7 +40,7 @@ readCstr(PyObject *self, PyObject *args)
    char *ptr = buf;
    do
    {
-      core->accessMemory(Core::NONE, Core::READ, address, ptr, chunksize, Core::MEM_MODELED_NONE);
+      core->accessMemory(Core::NONE, Core::READ, address, address, ptr, chunksize, Core::MEM_MODELED_NONE);  //saurabh rep
       address += chunksize;
       ptr += chunksize;
    }
@@ -48,7 +48,7 @@ readCstr(PyObject *self, PyObject *args)
 
    buf[maxsize] = 0;
    PyObject *res = Py_BuildValue("s", buf);
-   delete [] buf;
+   delete buf;
 
    return res;
 }

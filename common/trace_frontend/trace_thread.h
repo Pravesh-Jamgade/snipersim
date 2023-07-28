@@ -11,7 +11,12 @@
 
 #include <decoder.h>
 
+//extern "C" {
+//#include "xed-interface.h"
+//}
+
 #include <unordered_map>
+#include <map>       //saurabh 
 
 #define NUM_PAPI_COUNTERS 6
 
@@ -56,12 +61,16 @@ class TraceThread : public Runnable
       uint8_t m_address_randomization_table[256];
       bool m_stop;
       std::unordered_map<IntPtr, Instruction *> m_icache;
-      std::unordered_map<IntPtr, const dl::DecodedInst *> m_decoder_cache;
+      //std::unordered_map<IntPtr, const xed_decoded_inst_t *> m_decoder_cache;  // TODO convert to DecoderLib
+      //static bool xed_initialized;  // TODO convert to DecoderLib
+      //xed_state_t m_xed_state_init;  // TODO convert to DecoderLib
+      std::unordered_map<IntPtr, const dl::DecodedInst *> m_decoder_cache;  // TODO convert to DecoderLib
       UInt64 m_bbv_base;
       UInt64 m_bbv_count;
       UInt64 m_bbv_last;
       bool m_bbv_end;
       static int m_isa;
+      //xed_syntax_enum_t m_syntax;
       uint8_t m_output_leftover[160];
       uint16_t m_output_leftover_size;
       String m_tracefile;
@@ -110,12 +119,15 @@ class TraceThread : public Runnable
       Instruction* decode(Sift::Instruction &inst);
       void handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruction &next_inst, Core *core, bool do_icache_warmup, UInt64 icache_warmup_addr, UInt64 icache_warmup_size);
       void handleInstructionDetailed(Sift::Instruction &inst, Sift::Instruction &next_inst, PerformanceModel *prfmdl);
+      //void addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instruction &inst, const xed_decoded_inst_t &xed_inst, uint32_t mem_idx, Operand::Direction op_type, bool is_pretetch, PerformanceModel *prfmdl);
       void addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instruction &inst, const dl::DecodedInst &decoded_inst, uint32_t mem_idx, Operand::Direction op_type, bool is_pretetch, PerformanceModel *prfmdl);
       void unblock();
 
       SubsecondTime getCurrentTime() const;
       
+      //static dl::Decoder *m_decoder;
       dl::DecoderFactory *m_factory;  // we need a factory here to be able to create instructions of any kind
+      //const xed_decoded_inst_t* staticDecode(Sift::Instruction &inst);
       const dl::DecodedInst* staticDecode(Sift::Instruction &inst);
 
       long long *m_papi_counters;
@@ -124,6 +136,13 @@ class TraceThread : public Runnable
 
    public:
       bool m_stopped;
+      
+      UInt64 va_cur, va_prev; //saurabh
+      /*
+      std::map<UInt64, int> Array_1_Start; //saurabh
+      std::map<UInt64, int> Array_2_Start; //saurabh
+      std::map<UInt64, int> Array_3_Start; //saurabh
+      */
 
       TraceThread(Thread *thread, SubsecondTime time_start, String tracefile, String responsefile, app_id_t app_id, bool cleanup);
       ~TraceThread();
@@ -134,6 +153,7 @@ class TraceThread : public Runnable
       UInt64 getProgressValue();
       Thread* getThread() const { return m_thread; }
       void handleAccessMemory(Core::lock_signal_t lock_signal, Core::mem_op_t mem_op_type, IntPtr d_addr, char* data_buffer, UInt32 data_size);
+      void get_va_current();     //saurabh
 };
 
 #endif // __TRACE_THREAD_H

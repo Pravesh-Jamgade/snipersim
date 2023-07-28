@@ -1,5 +1,5 @@
 /*
- * This file is covered under the Interval Academic License, see LICENCE.academic
+ * This file is covered under the Interval Academic License, see LICENCE.interval
  */
 
 #ifndef ROBTIMER_HPP_

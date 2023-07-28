@@ -3,9 +3,12 @@
 
 #include "fixed_types.h"
 #include "cache.h"
+// #include "../../../trace_frontend/trace_thread.h"   //saurabh
+
 
 namespace ParametricDramDirectoryMSI
 {
+
    class TLB
    {
       private:
@@ -16,15 +19,17 @@ namespace ParametricDramDirectoryMSI
          UInt32 m_size;
          UInt32 m_associativity;
          Cache m_cache;
+         // TraceThread get_va_current; //saurabh wrong
 
          TLB *m_next_level;
 
          UInt64 m_access, m_miss;
       public:
          TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UInt32 associativity, TLB *next_level);
-         bool lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss = true);
+         bool lookup(IntPtr address, IntPtr va_address, SubsecondTime now, bool allocate_on_miss = true);         //saurabh
          void allocate(IntPtr address, SubsecondTime now);
    };
 }
+
 
 #endif // TLB_H

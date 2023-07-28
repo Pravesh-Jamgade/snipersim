@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 
 TraceManager::TraceManager()
-   : m_monitor(new Monitor(this, Sim()->getCfg()->getInt("traceinput/timeout")))
+   : m_monitor(new Monitor(this))
    , m_threads(0)
    , m_num_threads_started(0)
    , m_num_threads_running(0)
@@ -311,6 +311,7 @@ UInt64 TraceManager::getProgressValue()
 // This should only be called when already holding the thread lock to prevent migrations while we scan for a core id match
 void TraceManager::accessMemory(int core_id, Core::lock_signal_t lock_signal, Core::mem_op_t mem_op_type, IntPtr d_addr, char* data_buffer, UInt32 data_size)
 {
+   // std::cout << mem_op_type << " " << std::hex << d_addr << " " << std::dec  << std::endl;    //saurabh later study explpration
    for(std::vector<TraceThread *>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
    {
       TraceThread *tthread = *it;
@@ -330,9 +331,8 @@ void TraceManager::accessMemory(int core_id, Core::lock_signal_t lock_signal, Co
    LOG_PRINT_ERROR("Unable to find core %d", core_id);
 }
 
-TraceManager::Monitor::Monitor(TraceManager *manager, UInt32 timeout)
+TraceManager::Monitor::Monitor(TraceManager *manager)
    : m_manager(manager)
-   , m_timeout(timeout)
 {
 }
 
@@ -347,7 +347,7 @@ void TraceManager::Monitor::run()
    String threadName("trace-monitor");
    SimSetThreadName(threadName.c_str());
 
-   UInt32 n = 0;
+   UInt64 n = 0;
    while(true)
    {
       if (m_manager->m_num_threads_started > 0)
@@ -355,9 +355,9 @@ void TraceManager::Monitor::run()
 
       if (n == 10)
       {
-	 fprintf(stderr, "[SNIPER] WARNING: No SIFT connections made yet. Waiting for a total of %d seconds.\n", m_timeout);
+         fprintf(stderr, "[SNIPER] WARNING: No SIFT connections made yet. Waiting...\n");
       }
-      else if (n >= m_timeout)
+      else if (n == 60)
       {
          fprintf(stderr, "[SNIPER] ERROR: Could not establish SIFT connection, aborting! Check benchmark-app*.log for errors.\n");
          exit(1);

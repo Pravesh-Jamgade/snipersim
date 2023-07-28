@@ -1,5 +1,5 @@
 /*
- * This file is covered under the Interval Academic License, see LICENCE.academic
+ * This file is covered under the Interval Academic License, see LICENCE.interval
  */
 
 #include "rob_contention_boom_v1.h"

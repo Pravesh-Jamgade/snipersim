@@ -19,9 +19,8 @@ class TraceManager
             void run();
             _Thread *m_thread;
             TraceManager *m_manager;
-	    UInt32 m_timeout;
          public:
-	    Monitor(TraceManager *manager, UInt32 timeout = 60);
+            Monitor(TraceManager *manager);
             ~Monitor();
             void spawn();
       };

@@ -4,7 +4,7 @@
 #include "sift_format.h"
 
 #include "pin.H"
-#ifdef PINPLAY
+#ifdef PINPLAY_SUPPORTED
 #include "pinplay.H"
 #endif
 
@@ -41,9 +41,9 @@ extern KNOB<UINT64> KnobExtraePreLoaded;
 #define KNOB_FAMILY "pintool:sift-recorder"
 extern KNOB_COMMENT pinplay_driver_knob_family;
 extern KNOB<BOOL> KnobReplayer;
-#ifdef PINPLAY
+#ifdef PINPLAY_SUPPORTED
 extern PINPLAY_ENGINE pinplay_engine;
-#endif /* PINPLAY */
+#endif /* PINPLAY_SUPPORTED */
 
 // extern INT32 app_id;
 // extern INT32 num_threads;

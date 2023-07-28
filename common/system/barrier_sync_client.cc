@@ -13,15 +13,7 @@ BarrierSyncClient::BarrierSyncClient(Core* core):
 {
    try
    {
-      auto quantum = Sim()->getCfg()->getInt("clock_skew_minimization/barrier/quantum");
-      if (quantum != 0)
-      {
-         m_barrier_interval = SubsecondTime::NS() * quantum;
-      }
-      else
-      {
-         m_barrier_interval = SubsecondTime::MaxTime();
-      }
+      m_barrier_interval = SubsecondTime::NS() * Sim()->getCfg()->getInt("clock_skew_minimization/barrier/quantum");
    }
    catch(...)
    {

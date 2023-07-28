@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import sys, os, getopt, subprocess, tarfile
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tools'))
@@ -10,7 +10,7 @@ HOME = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0])))
 def usage():
   print 'Collect SIFT instruction trace'
   print 'Usage:'
-  print '  %s  -o <output file (default=trace)> [--roi] [-f <fast-forward instrs (default=none)] [-d <detailed instrs (default=all)] [-b <block size (instructions, default=all)> [-e <syscall emulation> (default=0)] [-r <use response files (default=0)>] [--gdb|--gdb-wait|--gdb-quit] [--follow] [--routine-tracing] [--outputdir <outputdir (.)>] [--stop-address <insn end address>] [--frontend=<frontend>] [--frontend-option=<options>] [--maxthreads] [--use-pinplay] { --pinball=<pinball-basename> | --pid <pid> | -- <cmdline> }' % sys.argv[0]
+  print '  %s  -o <output file (default=trace)> [--roi] [-f <fast-forward instrs (default=none)] [-d <detailed instrs (default=all)] [-b <block size (instructions, default=all)> [-e <syscall emulation> (default=0)] [-r <use response files (default=0)>] [--gdb|--gdb-wait|--gdb-quit] [--follow] [--routine-tracing] [--outputdir <outputdir (.)>] [--stop-address <insn end address>] [--frontend=<frontend>] [--frontend-option=<options>] [--isa=<ia32|x86_64|arm32|arm64>] [--ncores=(default=1)>] [--maxthreads] { --pinball=<pinball-basename> | --pid <pid> | -- <cmdline> }' % sys.argv[0]
   sys.exit(2)
 
 # From http://stackoverflow.com/questions/6767649/how-to-get-process-status-using-pid
@@ -25,6 +25,7 @@ import time
 usleep = lambda x: time.sleep(x/1000000.0)
 
 outputfile = 'trace'
+ncores = 1
 use_roi = False
 roi_mpi = False
 fastforward = 0
@@ -44,21 +45,20 @@ pinball = None
 pinplay_addrtrans = False
 outputdir = '.'
 verbose = False
-extra_tool_args = []
-extra_pin_args = []
+extra_args = []
 frontend = None
 frontend_options = []
+isa = None
 use_pid = None
 pid_continue = False
 stop_address = 0
 maxthreads = None
-use_pinplay = False
 
 if not sys.argv[1:]:
   usage()
 
 try:
-  opts, cmdline = getopt.getopt(sys.argv[1:], "hvo:d:f:b:e:s:r:X:x:", [ "roi", "roi-mpi", "gdb", "gdb-wait", "gdb-quit", "gdb-screen", "follow", "pa", "routine-tracing", "pinball=", "outputdir=", "pinplay-addr-trans", "pid=", "stop-address=", "pid-continue", "frontend=", "frontend-option=", "maxthreads=", "use-pinplay" ])
+  opts, cmdline = getopt.getopt(sys.argv[1:], "hvo:d:f:b:e:s:r:X:", [ "roi", "roi-mpi", "gdb", "gdb-wait", "gdb-quit", "gdb-screen", "follow", "pa", "routine-tracing", "pinball=", "outputdir=", "pinplay-addr-trans", "pid=", "stop-address=", "pid-continue", "frontend=", "frontend-option=", "isa=", "ncores=", "maxthreads=" ])
 except getopt.GetoptError, e:
   # print help information and exit:
   print e
@@ -114,13 +114,15 @@ for o, a in opts:
   if o == '--outputdir':
     outputdir = a
   if o == '-X':
-    extra_tool_args.append(a)
-  if o == '-x':
-    extra_pin_args.append(a)
+    extra_args.append(a)
   if o == '--frontend':
     frontend = a
   if o == '--frontend-option':
     frontend_options.append(a)
+  if o == '--isa':
+    isa = a
+  if o == '--ncores':
+    ncores = int(a)
   if o == '--pid':
     use_pid = int(a)
   if o == '--stop-address':
@@ -128,9 +130,7 @@ for o, a in opts:
   if o == '--pid-continue':
     pid_continue = True
   if o == '--maxthreads':
-    extra_tool_args.append('-sniper:maxthreads %s' % a)
-  if o == '--use-pinplay':
-    use_pinplay = True
+    extra_args.append('-maxthreads %s' % a)
 
 outputdir = os.path.realpath(outputdir)
 if not os.path.exists(outputdir):
@@ -154,22 +154,13 @@ execfile(configfile, {}, config)
 
 arch = config.get('target', 'intel64')
 
-if use_pinplay == False and  os.path.isfile('%s/sift/recorder/obj-%s/sift_recorder' %(HOME, arch)) and \
-    not os.path.isfile('%s/sift/recorder/obj-%s/sde_sift_recorder' %(HOME, arch)):
-  use_pinplay = True
-
 # convert paths in config to absolute paths
-not_found = []
-for d in ('sde_home', 'pin_home', 'dynamorio_home'):
+for d in ('pin_home', 'dynamorio_home'):
   absdir = os.path.join(HOME, config[d])
   if not os.path.isdir(absdir):
-    not_found.append('Cannot find %s %s, please check %s\n' % (d, absdir, configfile))
-  else:
-    exec "%s = '%s'" % (d, absdir)
-if len(not_found) >= 3:
-  for nf in not_found:
-    sys.stderr.write(nf)
-  sys.exit(-1)
+    sys.stderr.write('Cannot find %s %s, please check %s\n' % (d, absdir, configfile))
+    sys.exit(-1)
+  exec "%s = '%s'" % (d, absdir)
 sim_root = HOME
 
 frontend_options_str = ' '.join(frontend_options)
@@ -183,7 +174,7 @@ if use_pid:
 if use_gdb:
   pinoptions += ' -pause_tool 10'
 if use_follow:
-  pinoptions += ' -follow_execv 1'
+  pinoptions += ' -follow_execv'
 pinballoptions = ''
 if pinball:
   pinballoptions += '-replay -replay:basename "%s" -pinplay:msgfile "%s" -replay:resultfile "%s"' % (pinball, os.path.join(outputdir,'pinball_replay.app%d' % siftcountoffset), os.path.join(outputdir,'pinball_result.app%d' % siftcountoffset))
@@ -192,11 +183,7 @@ if pinball:
   else:
     pinoptions += ' -xyzzy -reserve_memory "%s.address"' % pinball
   # Replace the command line with the null app for use with PinPlay
-  if not use_pinplay:
-    cmdline = ['%(sde_home)s/%(arch)s/nullapp' % locals()]
-  else:
-    cmdline = ['%(pin_home)s/extras/pinplay/bin/%(arch)s/nullapp' % locals()]
-pinoptions += (' ' + ' '.join(extra_pin_args))
+  cmdline = ['%(pin_home)s/extras/pinplay/bin/%(arch)s/nullapp' % locals()]
 
 env = run_sniper.setup_env(HOME, pin_home, arch)
 
@@ -205,35 +192,36 @@ extrae = ""
 preloaded = os.getenv("LD_PRELOAD")
 if not preloaded is None:
   if "trace.so" in preloaded:
-    extrae="-sniper:extrae 1"
+    extrae="-extrae 1"
   elif "tracef.so" in preloaded:
-    extrae="-sniper:extrae 2"
+    extrae="-extrae 2"
 
 value_roi = use_roi and 1 or 0
 value_roi_mpi = roi_mpi and 1 or 0
 value_pa = use_pa and 1 or 0
 value_routine_tracing = use_routine_tracing and 1 or 0
 value_verbose = verbose and 1 or 0
-extra_tool_args = ' '.join(extra_tool_args)
+extra_args = ' '.join(extra_args)
 if frontend:
+  if not isa:  # default ISA value
+    isa = 'x86_64'
   if 'pin' in frontend:
     print '[RECORD-TRACE] Using Pin frontend (frontend/pin-frontend)'
-    cmd = '%(pin_home)s/pin %(pinoptions)s -t %(HOME)s/frontend/pin-frontend/obj-%(arch)s/pin_frontend -verbose %(value_verbose)d -debug %(gdb_screen)d -roi %(value_roi)d -roi-mpi %(value_roi_mpi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -pa %(value_pa)d -rtntrace %(value_routine_tracing)d -stop %(stop_address)d %(pinballoptions)s %(extra_tool_args)s %(extrae)s -- ' % locals() + ' '.join(cmdline)
+    cmd = '%(pin_home)s/pin %(pinoptions)s -t %(HOME)s/frontend/pin-frontend/obj-%(arch)s/pin_frontend -verbose %(value_verbose)d -debug %(gdb_screen)d -roi %(value_roi)d -roi-mpi %(value_roi_mpi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -pa %(value_pa)d -rtntrace %(value_routine_tracing)d -stop %(stop_address)d %(pinballoptions)s %(extra_args)s %(extrae)s -- ' % locals() + ' '.join(cmdline)
+        #  cmd = '%(HOME)s/qemu/qemu-linaro-install/bin/qemu-x86_64 ' % locals() + ' '.join(cmdline)
   elif 'dr' in frontend:
     print '[RECORD-TRACE] Using DynamoRIO frontend'
     DRRUN = '%(dynamorio_home)s/bin64/drrun' % locals()
-    DR_frontendlib = '%(HOME)s/frontend/dr-frontend/build/libdr-frontend.so' % locals()
+    DR_frontendlib = '%(dynamorio_home)s/clients/lib64/debug/libdr-frontend.so' % locals()
     DR_libpath = 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%(dynamorio_home)s/lib64/debug' % locals()
-    dr_args = '-thread_private'
     bool_args = ''
     if value_pa == 1:
        bool_args += '-pa '
-    if verbose:
-       bool_args += '-verbose %(value_verbose)s' % locals()
-       dr_args += ' -loglevel 1'
-    else:
-       dr_args += ' -loglevel 0 -stderr_mask 0'
-    cmd = '%(DR_libpath)s %(DRRUN)s %(dr_args)s -c %(DR_frontendlib)s -roi %(value_roi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -stop %(stop_address)d %(bool_args)s %(extra_tool_args)s  -- ' % locals() + ' '.join(cmdline)
+    if value_verbose == 1:
+       bool_args += '-verbose '
+    # FIXME: we could use -thread_private to simulate multithreading, but this is not supported yet for ARM
+    #cmd = '%(DR_libpath)s %(DRRUN)s -debug -loglevel 1 -thread_private -c %(DR_frontendlib)s -roi %(value_roi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -stop %(stop_address)d %(bool_args)s %(extra_args)s  -- ' % locals() + ' '.join(cmdline)
+    cmd = '%(DR_libpath)s %(DRRUN)s -debug -loglevel 1 -thread_private -c %(DR_frontendlib)s -roi %(value_roi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -stop %(stop_address)d %(bool_args)s %(extra_args)s  -- ' % locals() + ' '.join(cmdline)
   elif 'rv' in frontend:
     rv8_home = os.getenv('RV8_HOME')
     if not rv8_home:
@@ -260,11 +248,7 @@ if frontend:
     sys.exit(1)
 else:
   print '[RECORD-TRACE] Using the Pin frontend (sift/recorder)'
-  if not use_pinplay:
-    sde_arch = '-snb'
-    cmd = '%(sde_home)s/sde64 %(sde_arch)s -t64 %(HOME)s/sift/recorder/obj-%(arch)s/sde_sift_recorder -sniper:verbose %(value_verbose)d -sniper:debug %(gdb_screen)d -sniper:roi %(value_roi)d -sniper:roi-mpi %(value_roi_mpi)d -sniper:f %(fastforward)d -sniper:d %(detailed)d -sniper:b %(blocksize)d -sniper:o %(outputfile)s -sniper:e %(syscallemulation)d  -sniper:s %(siftcountoffset)d -sniper:r %(useresponsefiles)d  -sniper:pa %(value_pa)d -sniper:rtntrace  %(value_routine_tracing)d -sniper:stop %(stop_address)d %(pinballoptions)s %(extra_tool_args)s %(extrae)s -- ' % locals() + ' '.join(cmdline)
-  else:
-    cmd = '%(pin_home)s/pin %(pinoptions)s -t %(HOME)s/sift/recorder/obj-%(arch)s/sift_recorder -sniper:verbose %(value_verbose)d -sniper:debug %(gdb_screen)d -sniper:roi %(value_roi)d -sniper:roi-mpi %(value_roi_mpi)d -sniper:f %(fastforward)d -sniper:d %(detailed)d -sniper:b %(blocksize)d -sniper:o %(outputfile)s -sniper:e %(syscallemulation)d -sniper:s %(siftcountoffset)d -sniper:r %(useresponsefiles)d -sniper:pa %(value_pa)d -sniper:rtntrace %(value_routine_tracing)d -sniper:stop %(stop_address)d %(pinballoptions)s %(extra_tool_args)s %(extrae)s -- ' % locals() + ' '.join(cmdline)
+  cmd = '%(pin_home)s/pin %(pinoptions)s -t %(HOME)s/sift/recorder/obj-%(arch)s/sift_recorder -verbose %(value_verbose)d -debug %(gdb_screen)d -roi %(value_roi)d -roi-mpi %(value_roi_mpi)d -f %(fastforward)d -d %(detailed)d -b %(blocksize)d -o %(outputfile)s -e %(syscallemulation)d -s %(siftcountoffset)d -r %(useresponsefiles)d -pa %(value_pa)d -rtntrace %(value_routine_tracing)d -stop %(stop_address)d %(pinballoptions)s %(extra_args)s %(extrae)s -- ' % locals() + ' '.join(cmdline)
 
 
 if verbose:
