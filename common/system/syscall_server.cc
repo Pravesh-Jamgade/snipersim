@@ -58,7 +58,7 @@ IntPtr SyscallServer::handleFutexCall(thread_id_t thread_id, futex_args_t &args,
       if (args.timeout != NULL)
       {
          struct timespec timeout_buf;
-         core->accessMemory(Core::NONE, Core::READ, (IntPtr) args.timeout, (char*) &timeout_buf, sizeof(timeout_buf));
+         core->accessMemory(Core::NONE, Core::READ, (IntPtr) args.timeout, (IntPtr) args.timeout, (char*) &timeout_buf, sizeof(timeout_buf));      //saurabh rep
          SubsecondTime timeout_val = SubsecondTime::SEC(timeout_buf.tv_sec - Sim()->getConfig()->getOSEmuTimeStart())
                                    + SubsecondTime::NS(timeout_buf.tv_nsec);
          if (cmd == FUTEX_WAIT_BITSET)
@@ -77,7 +77,7 @@ IntPtr SyscallServer::handleFutexCall(thread_id_t thread_id, futex_args_t &args,
    int act_val;
    IntPtr res;
 
-   core->accessMemory(Core::NONE, Core::READ, (IntPtr) args.uaddr, (char*) &act_val, sizeof(act_val));
+   core->accessMemory(Core::NONE, Core::READ, (IntPtr) args.uaddr, (IntPtr) args.uaddr, (char*) &act_val, sizeof(act_val));      //saurabh rep
 
    if (cmd == FUTEX_WAIT || cmd == FUTEX_WAIT_BITSET)
    {
@@ -185,7 +185,7 @@ int SyscallServer::futexDoOp(Core *core, int encoded_op, int *uaddr)
    if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28))
       oparg = 1 << oparg;
 
-   core->accessMemory(Core::LOCK, Core::READ_EX, (IntPtr) uaddr, (char*) &oldval, sizeof(oldval));
+   core->accessMemory(Core::LOCK, Core::READ_EX, (IntPtr) uaddr, (IntPtr) uaddr, (char*) &oldval, sizeof(oldval));      //saurabh rep
 
    switch (op) {
       case FUTEX_OP_SET:
@@ -213,7 +213,7 @@ int SyscallServer::futexDoOp(Core *core, int encoded_op, int *uaddr)
       LOG_PRINT_WARNING_ONCE("FUTEX_WAKE_OP is implemented non-atomically, race condition may have occured");
    }
 
-   core->accessMemory(Core::UNLOCK, Core::WRITE, (IntPtr) uaddr, (char*) &newval, sizeof(newval));
+   core->accessMemory(Core::UNLOCK, Core::WRITE, (IntPtr) uaddr, (IntPtr) uaddr, (char*) &newval, sizeof(newval));      //saurabh rep
 
    switch (cmp) {
       case FUTEX_OP_CMP_EQ:

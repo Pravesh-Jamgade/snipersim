@@ -2089,6 +2089,82 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
       }
    }
 
+   //sauabh
+   if ((address >= Sim()->Virtual_Neigh_Start) && (address <= Sim()->Virtual_Neigh_End))
+   {
+      Sim()->Neigh_count_On_Total_Access++;
+      if (cache_hit)
+      {
+         switch (HitWhere::where_t(m_mem_component))
+         {
+         case 2:
+            Sim()->Neigh_count_On_Hit_L1_I++;
+            break;
+
+         case 3:
+            Sim()->Neigh_count_On_Hit_L1_D++;
+            break;
+         
+         case 4:
+            Sim()->Neigh_count_On_Hit_L2++;
+            break;
+         
+         case 5:
+            Sim()->Neigh_count_On_Hit_L3++;
+            break;
+         
+         case 6:
+            Sim()->Neigh_count_On_Hit_L4++;
+            break;
+
+         default:
+            Sim()->Neigh_count_On_Hit_else++;
+            break;
+         }      
+      }
+      else
+      {
+         Sim()->Neigh_count_On_Miss++;
+      }
+   }
+   else if ((address >= Sim()->Virtual_Index_Start) && (address <= Sim()->Virtual_Index_End))
+   {
+      Sim()->Index_count_On_Total_Access++;
+      if (cache_hit)
+      {
+         switch (HitWhere::where_t(m_mem_component))
+         {
+         case 2:
+            Sim()->Index_count_On_Hit_L1_I++;
+            break;
+
+         case 3:
+            Sim()->Index_count_On_Hit_L1_D++;
+            break;
+         
+         case 4:
+            Sim()->Index_count_On_Hit_L2++;
+            break;
+         
+         case 5:
+            Sim()->Index_count_On_Hit_L3++;
+            break;
+         
+         case 6:
+            Sim()->Index_count_On_Hit_L4++;
+            break;
+
+         default:
+            Sim()->Index_count_On_Hit_else++;
+            break;
+         } 
+      }
+      else
+      {
+         Sim()->Index_count_On_Miss++;
+      }
+   }
+
    cleanupMshr();
 
    #ifdef ENABLE_TRANSITIONS

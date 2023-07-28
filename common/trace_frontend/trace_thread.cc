@@ -484,7 +484,7 @@ Sift::Mode TraceThread::handleInstructionCountFunc(uint32_t icount)
    assert(false);
 }
 
-void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, uint64_t eip, uint64_t address)
+void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, uint64_t eip, uint64_t address)  //saurabh For Cache only
 {
    Core *core = m_thread->getCore();
    if (!core)
@@ -511,15 +511,20 @@ void TraceThread::handleCacheOnlyFunc(uint8_t icount, Sift::CacheOnlyType type, 
 
       case Sift::CacheOnlyMemRead:
       case Sift::CacheOnlyMemWrite:
+      {
+         // if (Core::MEM_MODELED_COUNT == 1)
+            // std::cout << " In_Cache_Only MemReadWrite 0x" << std::hex << address << " " << std::dec  << std::endl;  //saurabh when cache
          core->accessMemory(
                Core::NONE,
                type == Sift::CacheOnlyMemRead ? Core::READ : Core::WRITE,
                va2pa(address),
+               (UInt64)address,
                NULL,
                4,
                Core::MEM_MODELED_COUNT,
                va2pa(eip));
          break;
+      }
 
       case Sift::CacheOnlyMemIcache:
          if (Sim()->getConfig()->getEnableICacheModeling())
@@ -590,6 +595,8 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                
                bool no_mapping = false;
                UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+               std::cout << " Cache_Warm-up_Mem:: READ Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << std::endl;  //saurabh when detail
+               
                if (no_mapping)
                   continue;
 
@@ -597,6 +604,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                      /*(is_atomic_update) ? Core::LOCK :*/ Core::NONE,
                      (is_atomic_update) ? Core::READ_EX : Core::READ,
                      pa,
+                     mem_address,
                      NULL,
                      Sim()->getDecoder()->size_mem_op(&dec_inst, mem_idx),
                      Core::MEM_MODELED_COUNT,
@@ -625,6 +633,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                
                bool no_mapping = false;
                UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+               std::cout << " Cache_Warm-up_Mem:: WRITE Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec  << std::endl;  //saurabh when detail
                if (no_mapping)
                   continue;
 
@@ -635,6 +644,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
                         /*(is_atomic_update) ? Core::UNLOCK :*/ Core::NONE,
                         Core::WRITE,
                         pa,
+                        mem_address,
                         NULL,
                         Sim()->getDecoder()->size_mem_op(&dec_inst, mem_idx),
                         Core::MEM_MODELED_COUNT,
@@ -645,7 +655,7 @@ void TraceThread::handleInstructionWarmup(Sift::Instruction &inst, Sift::Instruc
    }
 }
 
-void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instruction &next_inst, PerformanceModel *prfmdl)
+void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instruction &next_inst, PerformanceModel *prfmdl)     //saurabh  in detail
 {
 
    // Set up instruction
@@ -672,7 +682,7 @@ void TraceThread::handleInstructionDetailed(Sift::Instruction &inst, Sift::Instr
 
       for(uint32_t mem_idx = 0; mem_idx < Sim()->getDecoder()->num_memory_operands(&dec_inst); ++mem_idx)
       {
-         if (Sim()->getDecoder()->op_read_mem(&dec_inst, mem_idx))
+         if (Sim()->getDecoder()->op_read_mem(&dec_inst, mem_idx))         
          {
             addDetailedMemoryInfo(dynins, inst, dec_inst, mem_idx, Operand::READ, is_prefetch, prfmdl);
          }
@@ -710,10 +720,72 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
       assert(mem_idx < inst.num_addresses);
       mem_address = inst.addresses[mem_idx];
    }
-               
+          
    bool no_mapping = false;
    UInt64 pa = va2pa(mem_address, is_prefetch ? &no_mapping : NULL);
+/*
+   // Array 1 map
+   auto it1 = Array_1_Start.find(mem_address);
+   if (it1 != Array_1_Start.end())
+   {
+      it1->second++;
+   }
+   else 
+   {
+      Array_1_Start[mem_address] = 1;
+   }
+   // Array 2 map
+   auto it2 = Array_2_Start.find(mem_address);
+   if (it2 != Array_2_Start.end())
+   {
+      it2->second++;
+   }
+   else 
+   {
+      Array_2_Start[mem_address] = 1;
+   }
+   // Array 3 map
+   auto it3 = Array_3_Start.find(mem_address);
+   if (it3 != Array_3_Start.end())
+   {
+      it3->second++;
+   }
+   else 
+   {
+      Array_3_Start[mem_address] = 1;
+   }
 
+   auto it4 = Array_1_Start.find(mem_address);
+   if (it4 != Array_1_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it4->second == 7)
+      {
+         std::cout << "1st_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }
+
+   auto it5 = Array_2_Start.find(mem_address);
+   if (it5 != Array_2_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it5->second == 17)
+      {
+         std::cout << "2nd_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }
+
+   auto it6 = Array_3_Start.find(mem_address);
+   if (it6 != Array_3_Start.end()) 
+   {
+      // if (it->second == 7) // if ((mem_address - va_prev) == 0)       //saurabh
+      if(it6->second == 29)
+      {
+         std::cout << "3rd_Array Detail_Mem_Read_Write: Virtual_ADD: 0x" << std::hex << mem_address << "  Physical_ADD: 0x" << pa << std::dec << " Operation: " << op_type << " maping: " << no_mapping << std::endl;  //saurabh when detail
+      }
+   }   
+   va_prev = mem_address; //saurabh
+*/
    if (no_mapping)
    {
       dynins->addMemory(
@@ -723,7 +795,8 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
          Sim()->getDecoder()->size_mem_op(&decoded_inst, mem_idx),
          op_type,
          0,
-         HitWhere::PREFETCH_NO_MAPPING);
+         HitWhere::PREFETCH_NO_MAPPING,
+         mem_address);           //saurabh looking in detail
    }
    else
    {
@@ -734,7 +807,8 @@ void TraceThread::addDetailedMemoryInfo(DynamicInstruction *dynins, Sift::Instru
          Sim()->getDecoder()->size_mem_op(&decoded_inst, mem_idx),
          op_type,
          0,
-         HitWhere::UNKNOWN);
+         HitWhere::UNKNOWN,
+         mem_address);
    }
 }
 
@@ -831,7 +905,7 @@ void TraceThread::run()
       m_bbv_end = inst.is_branch;
 
 
-      switch(Sim()->getInstrumentationMode())
+      switch(Sim()->getInstrumentationMode())            //saurabh
       {
          case InstMode::FAST_FORWARD:
             break;
@@ -865,6 +939,10 @@ void TraceThread::run()
 
       inst = next_inst;
    }
+
+   // std::cout << "V_CACHE" << std::endl;      //saurabh
+   // m_trace.print_vcache();                   //saurabh vcache_print
+
 
    printf("[TRACE:%u] -- %s --\n", m_thread->getId(), m_stop ? "STOP" : "DONE");
 
@@ -926,4 +1004,8 @@ void TraceThread::handleAccessMemory(Core::lock_signal_t lock_signal, Core::mem_
    }
 
    m_trace.AccessMemory(sift_lock_signal, sift_mem_op, d_addr, (uint8_t*)data_buffer, data_size);
+}
+void TraceThread::get_va_current()     //saurabh
+{
+   std::cout << "Virtual_Address: 0x" << std::hex << va_cur << std::dec << std::endl;
 }

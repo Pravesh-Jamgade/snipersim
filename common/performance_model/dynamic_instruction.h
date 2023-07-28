@@ -35,6 +35,7 @@ class DynamicInstruction
          UInt32 num_misses;
          SubsecondTime latency;
          HitWhere::where_t hit_where;
+         IntPtr va_addr;         //saurabh for va pass
       };
       static const UInt8 MAX_MEMORY = 2;
 
@@ -61,7 +62,7 @@ class DynamicInstruction
       bool isBranch() const { return branch_info.is_branch; }
       bool isMemory() const { return num_memory > 0; }
 
-      void addMemory(bool e, SubsecondTime l, IntPtr a, UInt32 s, Operand::Direction dir, UInt32 num_misses, HitWhere::where_t hit_where)
+      void addMemory(bool e, SubsecondTime l, IntPtr a, UInt32 s, Operand::Direction dir, UInt32 num_misses, HitWhere::where_t hit_where, IntPtr v_a)    //saurabh for va pass
       {
          LOG_ASSERT_ERROR(num_memory < MAX_MEMORY, "Got more than MAX_MEMORY(%d) memory operands", MAX_MEMORY);
          memory_info[num_memory].dir = dir;
@@ -71,7 +72,9 @@ class DynamicInstruction
          memory_info[num_memory].size = s;
          memory_info[num_memory].num_misses = num_misses;
          memory_info[num_memory].hit_where = hit_where;
+         memory_info[num_memory].va_addr = v_a;       //saurabh for va pass
          num_memory++;
+         // std::cout << "AddMemory" << std::endl;       //saurabh
       }
 
       void addBranch(bool taken, IntPtr target)

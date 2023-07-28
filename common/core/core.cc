@@ -18,6 +18,7 @@
 #include "cheetah_manager.h"
 
 #include <cstring>
+#include <map>
 
 #if 0
    extern Lock iolock;
@@ -27,6 +28,8 @@
 #endif
 
 #define VERBOSE 0
+
+std::map<std::string, int> addrss_uniq_count;
 
 const char * ModeledString(Core::MemModeled modeled) {
    switch(modeled)
@@ -137,6 +140,7 @@ bool
 Core::countInstructions(IntPtr address, UInt32 count)
 {
    bool check_rescheduled = false;
+   // std::cout << " BB_Address: " << std::hex << address << std::dec << std::endl;       //saurabh Basic_Block not for Use
 
    m_instructions += count;
    if (m_bbv.sample())
@@ -257,7 +261,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 
    // Cases with multiple cache lines or when we are not sure that it will be a hit call into the caches
    return initiateMemoryAccess(MemComponent::L1_ICACHE,
-             Core::NONE, Core::READ, address & blockmask, NULL, getMemoryManager()->getCacheBlockSize(), MEM_MODELED_COUNT_TLBTIME, 0, SubsecondTime::MaxTime());
+             Core::NONE, Core::READ, address & blockmask, address, NULL, getMemoryManager()->getCacheBlockSize(), MEM_MODELED_COUNT_TLBTIME, 0, SubsecondTime::MaxTime());    //saurabh va as address
 }
 
 void Core::accessMemoryFast(bool icache, mem_op_t mem_op_type, IntPtr address)
@@ -265,7 +269,7 @@ void Core::accessMemoryFast(bool icache, mem_op_t mem_op_type, IntPtr address)
    if (m_cheetah_manager && icache == false)
       m_cheetah_manager->access(mem_op_type, address);
 
-   SubsecondTime latency = getMemoryManager()->coreInitiateMemoryAccessFast(icache, mem_op_type, address);
+   SubsecondTime latency = getMemoryManager()->coreInitiateMemoryAccessFast(icache, mem_op_type, address, address);     //saurabh rep
 
    if (latency > SubsecondTime::Zero())
       m_performance_model->handleMemoryLatency(latency, HitWhere::MISS);
@@ -276,10 +280,11 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
       lock_signal_t lock_signal,
       mem_op_t mem_op_type,
       IntPtr address,
+      IntPtr va_address,
       Byte* data_buf, UInt32 data_size,
       MemModeled modeled,
       IntPtr eip,
-      SubsecondTime now)
+      SubsecondTime now)         //saurabh address is comming va-2-pa of sift_reader.cc
 {
    MYLOG("access %lx+%u %c%c modeled(%s)", address, data_size, mem_op_type == Core::WRITE ? 'W' : 'R', mem_op_type == Core::READ_EX ? 'X' : ' ', ModeledString(modeled));
 
@@ -316,6 +321,8 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
         itostr(initial_time).c_str(),
         ((mem_op_type == READ) ? "READ" : "WRITE"),
         address, data_size);
+
+   // printf("Time(%s), %s - ADDR(0x%x), data_size(%u), START \n", itostr(initial_time).c_str(), ((mem_op_type == READ) ? "READ" : "WRITE"), address, data_size);  //saurabh
 
    UInt32 num_misses = 0;
    HitWhere::where_t hit_where = HitWhere::UNKNOWN;
@@ -366,9 +373,9 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
                mem_component,
                lock_signal,
                mem_op_type,
-               curr_addr_aligned, curr_offset,
+               curr_addr_aligned, curr_offset, va_address,
                data_buf ? curr_data_buffer_head : NULL, curr_size,
-               modeled);
+               modeled);         //saurabh
 
       if (hit_where != (HitWhere::where_t)mem_component)
       {
@@ -460,18 +467,22 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
  *   number of misses :: State the number of cache misses
  */
 MemoryResult
-Core::accessMemory(lock_signal_t lock_signal, mem_op_t mem_op_type, IntPtr d_addr, char* data_buffer, UInt32 data_size, MemModeled modeled, IntPtr eip, SubsecondTime now, bool is_fault_mask)
+Core::accessMemory(lock_signal_t lock_signal, mem_op_t mem_op_type, IntPtr d_addr, IntPtr d_va_addr, char* data_buffer, UInt32 data_size, MemModeled modeled, IntPtr eip, SubsecondTime now, bool is_fault_mask)
 {
+   // std::cout << " Core::accessMemory: " << std::hex << d_addr << " " << std::dec  << std::endl;
    // In PINTOOL mode, if the data is requested, copy it to/from real memory
    if (data_buffer && !is_fault_mask)
    {
+      // std::cout << mem_op_type << " " << std::hex << d_addr << " " << std::dec  << std::endl;    //saurabh not proper place to get addresses
       if (Sim()->getConfig()->getSimulationMode() == Config::PINTOOL)
       {
+         // std::cout << " Core::accessMemory   PINTOOL" << std::endl;
          nativeMemOp (NONE, mem_op_type, d_addr, data_buffer, data_size);
       }
       else if (Sim()->getConfig()->getSimulationMode() == Config::STANDALONE)
       {
-         Sim()->getTraceManager()->accessMemory(m_core_id, lock_signal, mem_op_type, d_addr, data_buffer, data_size);
+         // std::cout << " Core::accessMemory   STANDALONE" << std::endl;
+         Sim()->getTraceManager()->accessMemory(m_core_id, lock_signal, mem_op_type, d_addr, data_buffer, data_size);   //saurabh acctually data memory accesws
       }
       data_buffer = NULL; // initiateMemoryAccess's data is not used
    }
@@ -479,7 +490,7 @@ Core::accessMemory(lock_signal_t lock_signal, mem_op_t mem_op_type, IntPtr d_add
    if (modeled == MEM_MODELED_NONE)
       return makeMemoryResult(HitWhere::UNKNOWN, SubsecondTime::Zero());
    else
-      return initiateMemoryAccess(MemComponent::L1_DCACHE, lock_signal, mem_op_type, d_addr, (Byte*) data_buffer, data_size, modeled, eip, now);
+      return initiateMemoryAccess(MemComponent::L1_DCACHE, lock_signal, mem_op_type, d_addr, d_va_addr, (Byte*) data_buffer, data_size, modeled, eip, now);      //saurabh important call after va to pa
 }
 
 
