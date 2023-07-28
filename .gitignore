@@ -75,4 +75,5 @@ sift/recorder/sift/*.h
 sift/recorder/sift/*.cc
 
 
-test/gapbs-exp
+test/gapbs-exp/*
+xed
