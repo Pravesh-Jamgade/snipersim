@@ -27,7 +27,9 @@ CacheBlockInfo::CacheBlockInfo(IntPtr tag, CacheState::cstate_t cstate, UInt64 o
    m_owner(0),
    m_used(0),
    m_options(options)
-{}
+{
+   array_type = 0;
+}
 
 CacheBlockInfo::~CacheBlockInfo()
 {}

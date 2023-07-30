@@ -7,6 +7,7 @@
 #include "shmem_msg.h"
 
 #include "boost/tuple/tuple.hpp"
+#include "mem_level_info.h"
 
 class MemoryManagerBase;
 class ShmemPerfModel;
@@ -42,6 +43,8 @@ class DramCntlrInterface
       virtual boost::tuple<SubsecondTime, HitWhere::where_t> putDataToDram(IntPtr address, core_id_t requester, Byte* data_buf, SubsecondTime now) = 0;
 
       void handleMsgFromTagDirectory(core_id_t sender, PrL1PrL2DramDirectoryMSI::ShmemMsg* shmem_msg);
+
+      MemDataLogger* dram_data_logger;
 };
 
 #endif // __DRAM_CNTLR_INTERFACE_H

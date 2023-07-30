@@ -11,6 +11,8 @@
 
 #include <cstring>
 
+#include "mem_level_info.h"
+
 // Define to allow private L2 caches not to take the stack lock.
 // Works in most cases, but seems to have some more bugs or race conditions, preventing it from being ready for prime time.
 //#define PRIVATE_L2_OPTIMIZATION
@@ -154,6 +156,9 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
    m_shmem_perf_global(NULL),
    m_shmem_perf_model(shmem_perf_model)
 {
+   //**
+   cache_data_logger = new MemDataLogger(core_id, name);
+
    m_core_id_master = m_core_id - m_core_id % m_shared_cores;
    Sim()->getStatsManager()->logTopology(name, core_id, m_core_id_master);
 
@@ -284,6 +289,8 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
 CacheCntlr::~CacheCntlr()
 {
+   cache_data_logger->PrintStat();
+   
    if (isMasterCache())
    {
       delete m_master;
@@ -544,6 +551,11 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
       }
    }
 
+   //**
+   int old_array_type = cache_block_info->array_type;
+   int new_array_type = Sim()->get_array_type(ca_address);
+   cache_data_logger->replacing(new_array_type, old_array_type);
+   cache_block_info->set_array_type(new_array_type);
 
    if (modeled && m_next_cache_cntlr && !m_perfect && Sim()->getConfig()->hasCacheEfficiencyCallbacks())
    {
@@ -1405,9 +1417,21 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
       m_next_cache_cntlr->notifyPrevLevelInsert(m_core_id_master, m_mem_component, address);
 MYLOG("insertCacheBlock l%d local done", m_mem_component);
 
+   // pravesh
+   int evict_cache_block_array_type = evict_block_info.array_type;
+   int new_cache_block_array_type = Sim()->get_array_type(address);
+
+   // update to new array type
+   cache_block_info->set_array_type(new_cache_block_array_type);
 
    if (eviction)
-   {
+   {  
+      //count who evicts who
+      if(evict_cache_block_array_type != new_cache_block_array_type)
+      {
+
+      }
+
 MYLOG("evicting @%lx", evict_address);
 
       if (
@@ -1575,6 +1599,13 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
 
    SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
    __attribute__((unused)) CacheState::cstate_t old_cstate = cache_block_info ? cache_block_info->getCState() : CacheState::INVALID;
+
+   // //**
+   // int old_array_type = cache_block_info->array_type;
+   // int new_array_type = Sim()->get_array_type(address);
+   // cache_block_info->set_array_type(new_array_type);
+   // if(old_array_type!=new_array_type)
+   //    cache_data_logger->replacing(new_array_type, old_array_type);
 
    bool buf_written = false, is_writeback = false;
 
@@ -2113,9 +2144,19 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
    //sauabh
    if ((address >= Sim()->Virtual_Neigh_Start) && (address <= Sim()->Virtual_Neigh_End))
    {
+      std::cout << "NEIGH ****************************\n";
+
+      //pravesh
+      cache_data_logger->add_access(2);
+
       Sim()->Neigh_count_On_Total_Access++;
       if (cache_hit)
       {
+         std::cout << "HIT NEIGH  ****************************\n";
+
+         //pravesh
+         cache_data_logger->add_hits(2);
+
          switch (HitWhere::where_t(m_mem_component))
          {
          case 2:
@@ -2150,9 +2191,19 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
    }
    else if ((address >= Sim()->Virtual_Index_Start) && (address <= Sim()->Virtual_Index_End))
    {
+      std::cout << "INDEXX ****************************\n";
+
+      //pravesh
+      cache_data_logger->add_access(1);
+
       Sim()->Index_count_On_Total_Access++;
       if (cache_hit)
       {
+         std::cout << "HIT INDEX  ****************************\n";
+
+         //pravesh
+         cache_data_logger->add_hits(1);
+
          switch (HitWhere::where_t(m_mem_component))
          {
          case 2:

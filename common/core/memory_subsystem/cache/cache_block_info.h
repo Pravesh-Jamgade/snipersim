@@ -60,6 +60,29 @@ class CacheBlockInfo
       bool updateUsage(BitsUsedType used);
 
       static const char* getOptionName(option_t option);
+
+      /*
+      same as what is used for Sim()->get_array_type(IntPtr address);
+         0 None (intialized)
+         1 Index or offset
+         2 Edge or neighbour
+         3 property
+
+      */
+      int array_type;
+
+      /*
+      same as what is used for Sim()->get_array_type(IntPtr address);
+         0 None (intialized)
+         1 Index or offset
+         2 Edge or neighbour
+         3 property
+
+      */
+      void set_array_type(int new_array_type)
+      {
+         array_type = new_array_type;
+      }
 };
 
 class CacheCntlr

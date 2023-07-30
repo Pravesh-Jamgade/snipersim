@@ -84,14 +84,6 @@ bool Log::isEnabled(const char* module)
 
 void Log::initFileDescriptors()
 {
-
-   _loggerFiles = new FILE*[LogCustom::END-LogCustom::START+1];
-   _loggerLocks = new Lock[LogCustom::END-LogCustom::START+1];
-   for(int i=LogCustom::START; i<= LogCustom::END; i++)
-   {
-      _loggerFiles[i] = NULL;
-   }
-
    _coreFiles = new FILE* [_coreCount];
    _simFiles = new FILE* [_coreCount];
 
@@ -375,49 +367,4 @@ void Log::log(ErrorState err, const char* source_file, SInt32 source_line, const
    default:
       break;
    }
-}
-
-void Log::log(Log::LogCustom log_custom, const char *format, ...)// Log::LogState logState,
-{
-   FILE *file = NULL;
-   Lock *lock = NULL;
-
-   core_id_t core_id;
-   bool sim_thread;
-   discoverCore(&core_id, &sim_thread);
-
-   char filename[256];
-      
-   if(_loggerFiles[log_custom]==NULL)
-   {
-      sprintf(filename, "customLog_%u.log", log_custom);
-      _loggerFiles[log_custom]=fopen(formatFileName(filename).c_str(), "w");
-   }
-   file = _loggerFiles[log_custom];
-   if(sim_thread)
-      lock = &_simLocks[core_id];
-   else
-      lock = &_coreLocks[core_id];
-   
-   if(lock==nullptr){
-      printf("[LOG] lock=nullptr\n");
-      exit(-1);
-   }
-
-   if(file == NULL)
-   {
-      printf("[LOG] file=nullptr\n");
-      exit(-1);
-   }
-
-   char message[512];
-   char *p = message;
-
-   va_list args;
-   va_start(args, format);
-   vsprintf(p, format, args);
-   va_end(args);
-
-   fputs(message, file);
-
 }

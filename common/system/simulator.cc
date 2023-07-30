@@ -125,6 +125,7 @@ Simulator::Simulator()
    , m_running(false)
    , m_inst_mode_output(true)
 {
+   neigh_bounds_ready = index_bounds_ready = property_bounds_ready = false;
 }
 
 void Simulator::start()

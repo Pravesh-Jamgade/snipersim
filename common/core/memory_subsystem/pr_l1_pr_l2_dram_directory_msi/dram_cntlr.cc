@@ -7,6 +7,9 @@
 #include "fault_injection.h"
 #include "shmem_perf.h"
 
+
+#include "mem_level_info.h"
+
 #if 0
    extern Lock iolock;
 #  include "core_manager.h"
@@ -39,10 +42,15 @@ DramCntlr::DramCntlr(MemoryManagerBase* memory_manager,
    m_dram_access_count = new AccessCountMap[DramCntlrInterface::NUM_ACCESS_TYPES];
    registerStatsMetric("dram", memory_manager->getCore()->getId(), "reads", &m_reads);
    registerStatsMetric("dram", memory_manager->getCore()->getId(), "writes", &m_writes);
+
+   dram_data_logger = new MemDataLogger(memory_manager->getCore()->getId(), String("dram-cntrl"));
 }
 
 DramCntlr::~DramCntlr()
 {
+   if(!dram_data_logger)
+      dram_data_logger->PrintStat();
+      
    printDramAccessCount();
    delete [] m_dram_access_count;
 

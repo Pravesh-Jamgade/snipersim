@@ -93,7 +93,31 @@ public:
    int flag_I =0;
    IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
    IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
+   bool neigh_bounds_ready, index_bounds_ready, property_bounds_ready;
+
+   /*
+      0 None
+      1 Index or Offset
+      2 Edge or Neighbour
+      3 property
+   */
+   int get_array_type(IntPtr address)
+   {
+      // if(neigh_bounds_ready){
+         if(Virtual_Neigh_Start <= address && address <= Virtual_Neigh_End){
+            return 2;
+         }
+      // }
+      // if(index_bounds_ready){
+         if(Virtual_Index_Start <= address && address <= Virtual_Index_End){
+            return 1;
+         }
+      // }
+      
+      return 0;
+   }
    //saurabh
+  
    bool isRunning() { return m_running; }
    static void enablePerformanceModels();
    static void disablePerformanceModels();

@@ -446,6 +446,7 @@ MemoryManager::coreInitiateMemoryAccess(
 
 void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address)
 {
+   std::cout << address << "," << va_address << '\n';
    // int flag = 0;  //saurabh
    for (int i = 5; i > 0; i--)
    {
@@ -479,6 +480,7 @@ void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address
                         }
                         case 2:
                         {
+                           Sim()->neigh_bounds_ready = true;
                            // Sim()->flag_N++;
                            Sim()->Virtual_Neigh_End = address;
                            std::cout << i << " " << j << " " << k << " End Neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
@@ -527,6 +529,7 @@ void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address
                            }
                            case 1:
                            {
+                              Sim()->index_bounds_ready = true;
                               // Sim()->flag_I++;
                               Sim()->Virtual_Index_End = address;
                               std::cout << i << " " << j << " " << k << " End Index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
