@@ -446,7 +446,7 @@ MemoryManager::coreInitiateMemoryAccess(
 
 void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address)
 {
-   std::cout << address << "," << va_address << '\n';
+   // std::cout << address << "," << va_address << '\n';
    // int flag = 0;  //saurabh
    for (int i = 5; i > 0; i--)
    {
