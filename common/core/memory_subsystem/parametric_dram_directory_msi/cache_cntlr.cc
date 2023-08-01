@@ -551,12 +551,6 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
       }
    }
 
-   //**
-   int old_array_type = cache_block_info->array_type;
-   int new_array_type = Sim()->get_array_type(ca_address);
-   cache_data_logger->replacing(new_array_type, old_array_type);
-   cache_block_info->set_array_type(new_array_type);
-
    if (modeled && m_next_cache_cntlr && !m_perfect && Sim()->getConfig()->hasCacheEfficiencyCallbacks())
    {
       bool new_bits = cache_block_info->updateUsage(offset, data_length);
@@ -1427,9 +1421,9 @@ MYLOG("insertCacheBlock l%d local done", m_mem_component);
    if (eviction)
    {  
       //count who evicts who
-      if(evict_cache_block_array_type != new_cache_block_array_type)
+      if(evict_cache_block_array_type>-1)
       {
-
+         cache_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
       }
 
 MYLOG("evicting @%lx", evict_address);
@@ -1600,13 +1594,6 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
    SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
    __attribute__((unused)) CacheState::cstate_t old_cstate = cache_block_info ? cache_block_info->getCState() : CacheState::INVALID;
 
-   // //**
-   // int old_array_type = cache_block_info->array_type;
-   // int new_array_type = Sim()->get_array_type(address);
-   // cache_block_info->set_array_type(new_array_type);
-   // if(old_array_type!=new_array_type)
-   //    cache_data_logger->replacing(new_array_type, old_array_type);
-
    bool buf_written = false, is_writeback = false;
 
    if (!cache_block_info)
@@ -1742,6 +1729,15 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
       so only when we accessed data should we return any latency */
    if (is_writeback)
       latency += m_writeback_time.getLatency();
+
+   
+      //**
+   int old_array_type = cache_block_info->array_type;
+   int new_array_type = Sim()->get_array_type(address);
+   cache_block_info->set_array_type(new_array_type);
+   if(old_array_type>-1)
+      cache_data_logger->replacing(new_array_type, old_array_type);
+
    return std::pair<SubsecondTime, bool>(latency, sibling_hit);
 }
 
@@ -2144,16 +2140,12 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
    //sauabh
    if ((address >= Sim()->Virtual_Neigh_Start) && (address <= Sim()->Virtual_Neigh_End))
    {
-      std::cout << "NEIGH ****************************\n";
-
       //pravesh
       cache_data_logger->add_access(2);
 
       Sim()->Neigh_count_On_Total_Access++;
       if (cache_hit)
       {
-         std::cout << "HIT NEIGH  ****************************\n";
-
          //pravesh
          cache_data_logger->add_hits(2);
 
@@ -2191,16 +2183,12 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
    }
    else if ((address >= Sim()->Virtual_Index_Start) && (address <= Sim()->Virtual_Index_End))
    {
-      std::cout << "INDEXX ****************************\n";
-
       //pravesh
       cache_data_logger->add_access(1);
 
       Sim()->Index_count_On_Total_Access++;
       if (cache_hit)
       {
-         std::cout << "HIT INDEX  ****************************\n";
-
          //pravesh
          cache_data_logger->add_hits(1);
 
