@@ -162,7 +162,7 @@ class CacheSampleStat
         for(int i=0; i< num_sets; i++)
         {
             cache_writes[i] = (UInt64*)calloc(associativity, sizeof(UInt64));
-            cache_lru_info[i] = (UInt64*)calloc(associativity, sizeof(UInt64));
+            cache_lru_info[i] = (UInt64*)calloc(2*associativity, sizeof(UInt64));
 
             for(int j=0; j< associativity; j++)
             {
