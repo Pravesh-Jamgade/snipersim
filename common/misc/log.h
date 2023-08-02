@@ -33,6 +33,9 @@ class Log
          A,
          B,
          C,
+         D,
+         E,
+         F,
          END
       };
 

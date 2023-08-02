@@ -96,10 +96,11 @@ CacheSet::invalidate(IntPtr& tag)
 }
 
 void
-CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff, CacheCntlr *cntlr)
+CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff, int& replacement_index, CacheCntlr *cntlr)
 {
    // This replacement strategy does not take into account the fact that
    // cache blocks can be voluntarily flushed or invalidated due to another write request
+   replacement_index = -1;
    const UInt32 index = getReplacementIndex(cntlr);
    assert(index < m_associativity);
 
@@ -107,6 +108,8 @@ CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* evicti
 
    if (m_cache_block_info_array[index]->isValid())
    {
+      replacement_index = index;//pravesh
+
       *eviction = true;
       // FIXME: This is a hack. I dont know if this is the best way to do
       evict_block_info->clone(m_cache_block_info_array[index]);

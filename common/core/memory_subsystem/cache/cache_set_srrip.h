@@ -23,6 +23,7 @@ class CacheSetSRRIP : public CacheSet
       UInt8* m_rrip_bits;
       UInt8  m_replacement_pointer;
       CacheSetInfoLRU* m_set_info;
+      UInt8* lru_bits;//pravesh
 };
 
 #endif /* CACHE_SET_H */

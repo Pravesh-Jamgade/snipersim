@@ -20,6 +20,12 @@ CacheSetSRRIP::CacheSetSRRIP(
    m_rrip_bits = new UInt8[m_associativity];
    for (UInt32 i = 0; i < m_associativity; i++)
       m_rrip_bits[i] = m_rrip_insert;
+
+   lru_bits = new UInt8[m_associativity];
+   for(UInt32 i = 0; i< m_associativity; i++)
+   {
+      lru_bits[i] = m_associativity;
+   }
 }
 
 CacheSetSRRIP::~CacheSetSRRIP()
@@ -37,6 +43,7 @@ CacheSetSRRIP::getReplacementIndex(CacheCntlr *cntlr)
          // If there is an invalid line(s) in the set, regardless of the LRU bits of other lines, we choose the first invalid line to replace
          // Prepare way for a new line: set prediction to 'long'
          m_rrip_bits[i] = m_rrip_insert;
+         
          return i;
       }
    }
@@ -76,6 +83,7 @@ CacheSetSRRIP::getReplacementIndex(CacheCntlr *cntlr)
             m_set_info->incrementAttempt(attempt);
 
             LOG_ASSERT_ERROR(isValidReplacement(index), "SRRIP selected an invalid replacement candidate" );
+
             return index;
          }
 

@@ -12,6 +12,7 @@
 #include "core.h"
 #include "fault_injection.h"
 
+#include "cache_sample_stat.h"
 // Define to enable the set usage histogram
 //#define ENABLE_SET_USAGE_HIST
 
@@ -35,6 +36,7 @@ class Cache : public CacheBase
       UInt64* m_set_usage_hist;
       #endif
 
+      CacheSampleStat* cache_sample_stat;
    public:
 
       // constructors/destructors

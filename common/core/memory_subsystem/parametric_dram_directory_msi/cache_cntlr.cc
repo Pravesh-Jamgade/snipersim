@@ -1730,14 +1730,16 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
    if (is_writeback)
       latency += m_writeback_time.getLatency();
 
+   //**
+   if(cache_block_info)
+   {
+      int old_array_type = cache_block_info->array_type;
+      int new_array_type = Sim()->get_array_type(address);
+      cache_block_info->set_array_type(new_array_type);
+      if(old_array_type>-1)
+         cache_data_logger->replacing(new_array_type, old_array_type);
+   }
    
-      //**
-   int old_array_type = cache_block_info->array_type;
-   int new_array_type = Sim()->get_array_type(address);
-   cache_block_info->set_array_type(new_array_type);
-   if(old_array_type>-1)
-      cache_data_logger->replacing(new_array_type, old_array_type);
-
    return std::pair<SubsecondTime, bool>(latency, sibling_hit);
 }
 

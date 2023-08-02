@@ -36,6 +36,8 @@ Cache::Cache(
    for (UInt32 i = 0; i < m_num_sets; i++)
       m_set_usage_hist[i] = 0;
    #endif
+
+   cache_sample_stat = new CacheSampleStat(core_id, name, num_sets, associativity);
 }
 
 Cache::~Cache()
@@ -99,6 +101,12 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
    if (cache_block_info == NULL)
       return NULL;
 
+   //pravesh
+   if (access_type != LOAD)
+      cache_sample_stat->cache_writes[set_index][line_index]++;
+   if(update_replacement)
+      cache_sample_stat->func_track_set(set_index, line_index, Sim()->get_array_type(addr));
+
    if (access_type == LOAD)
    {
       // NOTE: assumes error occurs in memory. If we want to model bus errors, insert the error into buff instead
@@ -132,9 +140,19 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
    CacheBlockInfo* cache_block_info = CacheBlockInfo::create(m_cache_type);
    cache_block_info->setTag(tag);
 
+   int replacement_index;//pravesh
+
    m_sets[set_index]->insert(cache_block_info, fill_buff,
-         eviction, evict_block_info, evict_buff, cntlr);
+         eviction, evict_block_info, evict_buff, replacement_index, cntlr);
    *evict_addr = tagToAddress(evict_block_info->getTag());
+
+   //pravesh
+   if(*eviction || replacement_index!=-1)
+   {
+      cache_sample_stat->func_track_writes_before_evict(set_index, replacement_index, Sim()->get_array_type(addr));
+      //upon eviction lru bit must be set to 0
+      cache_sample_stat->cache_lru_info[set_index][replacement_index] = 0;
+   }
 
    if (m_fault_injector) {
       // NOTE: no callback is generated for read of evicted data
