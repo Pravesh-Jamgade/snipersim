@@ -677,6 +677,10 @@ MYLOG("copyDataFromNextLevel l%d", m_mem_component);
    SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
    if (cache_block_info)
    {
+      int array_type = (int)Sim()->getContextHintObject()->what_is_it(address);
+      mem_data_logger->replacing(array_type, cache_block_info->arr_type_data);
+      cache_block_info->arr_type_data = array_type;
+
       // Block already present (upgrade): don't insert, but update
       updateCacheBlock(address, cstate, Transition::UPGRADE, NULL, ShmemPerfModel::_SIM_THREAD);
       MYLOG("copyDataFromNextLevel l%d done (updated)", m_mem_component);
@@ -837,15 +841,15 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
-      if(cache_hit)
-      {
-         int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
-         if(arr_type>-1 && cache_block_info->arr_type_data>-1)
-         {
-            mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
-         }
-         cache_block_info->set_arr_type(arr_type);
-      }
+      // if(cache_hit)
+      // {
+      //    int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
+      //    if(arr_type>-1 && cache_block_info->arr_type_data>-1)
+      //    {
+      //       mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
+      //    }
+      //    cache_block_info->set_arr_type(arr_type);
+      // }
       
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
