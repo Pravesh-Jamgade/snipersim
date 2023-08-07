@@ -412,6 +412,7 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          int existing_arr_type = cache_block_info->arr_type_data;
          int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
          mem_data_logger->replacing(new_arr_type, existing_arr_type);
+         cache_block_info->arr_type_data = new_arr_type;
       }
 
       ScopedLock sl(getLock());
