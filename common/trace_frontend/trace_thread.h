@@ -12,6 +12,7 @@
 #include <decoder.h>
 
 #include <unordered_map>
+#include <map>       //saurabh 
 
 #define NUM_PAPI_COUNTERS 6
 
@@ -124,6 +125,13 @@ class TraceThread : public Runnable
 
    public:
       bool m_stopped;
+      
+      UInt64 va_cur, va_prev; //saurabh
+      /*
+      std::map<UInt64, int> Array_1_Start; //saurabh
+      std::map<UInt64, int> Array_2_Start; //saurabh
+      std::map<UInt64, int> Array_3_Start; //saurabh
+      */
 
       TraceThread(Thread *thread, SubsecondTime time_start, String tracefile, String responsefile, app_id_t app_id, bool cleanup);
       ~TraceThread();
@@ -134,6 +142,7 @@ class TraceThread : public Runnable
       UInt64 getProgressValue();
       Thread* getThread() const { return m_thread; }
       void handleAccessMemory(Core::lock_signal_t lock_signal, Core::mem_op_t mem_op_type, IntPtr d_addr, char* data_buffer, UInt32 data_size);
+      void get_va_current();     //saurabh
 };
 
 #endif // __TRACE_THREAD_H

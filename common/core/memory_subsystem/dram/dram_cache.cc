@@ -9,6 +9,8 @@
 #include "shmem_perf.h"
 #include "prefetcher.h"
 
+#include "mem_level_info.h"
+
 DramCache::DramCache(MemoryManagerBase* memory_manager, ShmemPerfModel* shmem_perf_model, AddressHomeLookup* home_lookup, UInt32 cache_block_size, DramCntlrInterface *dram_cntlr)
    : DramCntlrInterface(memory_manager, shmem_perf_model, cache_block_size)
    , m_core_id(memory_manager->getCore()->getId())
@@ -63,10 +65,15 @@ DramCache::DramCache(MemoryManagerBase* memory_manager, ShmemPerfModel* shmem_pe
    registerStatsMetric("dram-cache", m_core_id, "hits-prefetch", &m_hits_prefetch);
    registerStatsMetric("dram-cache", m_core_id, "prefetches", &m_prefetches);
    registerStatsMetric("dram-cache", m_core_id, "prefetch-mshr-delay", &m_prefetch_mshr_delay);
+
+   dram_data_logger = new MemDataLogger(m_core_id, String("dram-cache"));
 }
 
 DramCache::~DramCache()
 {
+   if(!dram_data_logger)
+      dram_data_logger->PrintStat();
+      
    delete m_cache;
    if (m_queue_model)
       delete m_queue_model;

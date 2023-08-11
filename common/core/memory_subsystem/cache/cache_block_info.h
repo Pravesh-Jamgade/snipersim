@@ -5,6 +5,8 @@
 #include "cache_state.h"
 #include "cache_base.h"
 
+#include "mem_level_info.h"
+
 class CacheBlockInfo
 {
    public:
@@ -61,15 +63,27 @@ class CacheBlockInfo
 
       static const char* getOptionName(option_t option);
 
-      // arr_type
-      // 1->OA 2->EA
-      // 0->other
-      // -1->invalid/none
-      int arr_type_data;
-      
-      void set_arr_type(int arr_type){
-         if(arr_type<0) return;
-         this->arr_type_data = arr_type;
+      /*
+      same as what is used for Sim()->get_array_type(IntPtr address);
+         0 None (intialized)
+         1 Index or offset
+         2 Edge or neighbour
+         3 property
+
+      */
+      int array_type;
+
+      /*
+      same as what is used for Sim()->get_array_type(IntPtr address);
+         0 None (intialized)
+         1 Index or offset
+         2 Edge or neighbour
+         3 property
+
+      */
+      void set_array_type(int new_array_type)
+      {
+         array_type = new_array_type;
       }
 };
 
@@ -78,6 +92,7 @@ class CacheCntlr
    public:
       virtual bool isInLowerLevelCache(CacheBlockInfo *block_info) { return false; }
       virtual void incrementQBSLookupCost() {}
+      MemDataLogger* mem_data_logger;
 };
 
 #endif /* __CACHE_BLOCK_INFO_H__ */

@@ -588,6 +588,7 @@ void RobTimer::issueInstruction(uint64_t idx, SubsecondTime &next_event)
          Core::NONE,
          uop.getMicroOp()->isLoad() ? Core::READ : Core::WRITE,
          uop.getAddress().address,
+         uop.getAddress().virt,        //saurabh rep
          NULL,
          uop.getMicroOp()->getMemoryAccessSize(),
          Core::MEM_MODELED_RETURN,

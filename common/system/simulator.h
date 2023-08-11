@@ -75,6 +75,52 @@ public:
    MemoryTracker *getMemoryTracker() { return m_memory_tracker; }
    void setMemoryTracker(MemoryTracker *memory_tracker) { m_memory_tracker = memory_tracker; }
 
+   //saurabh
+   IntPtr Neigh_count_On_Total_Access = 0;
+   IntPtr Neigh_count_On_Hit_L1_I = 0;
+   IntPtr Neigh_count_On_Hit_L1_D = 0;
+   IntPtr Neigh_count_On_Hit_L2 = 0;
+   IntPtr Neigh_count_On_Hit_L3 = 0;
+   IntPtr Neigh_count_On_Hit_L4 = 0;
+   IntPtr Neigh_count_On_Hit_else = 0;
+   IntPtr Neigh_count_On_Miss = 0;
+   IntPtr Index_count_On_Total_Access = 0;
+   IntPtr Index_count_On_Hit_L1_I = 0;
+   IntPtr Index_count_On_Hit_L1_D = 0;
+   IntPtr Index_count_On_Hit_L2 = 0;
+   IntPtr Index_count_On_Hit_L3 = 0;
+   IntPtr Index_count_On_Hit_L4 = 0;
+   IntPtr Index_count_On_Hit_else = 0;
+   IntPtr Index_count_On_Miss = 0;
+   int flag_N =0;
+   int flag_I =0;
+   IntPtr Virtual_Neigh_Start = 0, Virtual_Neigh_End =0;
+   IntPtr Virtual_Index_Start = 0, Virtual_Index_End =0;
+   bool neigh_bounds_ready, index_bounds_ready, property_bounds_ready;
+
+   /*
+      0 None
+      1 Index or Offset
+      2 Edge or Neighbour
+      3 property
+   */
+   int get_array_type(IntPtr address)
+   {
+      // if(neigh_bounds_ready){
+         if(Virtual_Neigh_Start <= address && address <= Virtual_Neigh_End){
+            return 2;
+         }
+      // }
+      // if(index_bounds_ready){
+         if(Virtual_Index_Start <= address && address <= Virtual_Index_End){
+            return 1;
+         }
+      // }
+      
+      return 0;
+   }
+   //saurabh
+  
    bool isRunning() { return m_running; }
    static void enablePerformanceModels();
    static void disablePerformanceModels();

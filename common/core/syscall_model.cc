@@ -125,7 +125,7 @@ bool SyscallMdl::runEnter(IntPtr syscall_number, syscall_args_t &args)
          SubsecondTime start_time = core->getPerformanceModel()->getElapsedTime();
 
          struct timespec local_req;
-         core->accessMemory(Core::NONE, Core::READ, (IntPtr) req, (char*) &local_req, sizeof(local_req));
+         core->accessMemory(Core::NONE, Core::READ, (IntPtr) req, (IntPtr) req, (char*) &local_req, sizeof(local_req));    //saurabh repet  (IntPtr) req,
 
          SubsecondTime time_wake = start_time + SubsecondTime::SEC(local_req.tv_sec) + SubsecondTime::NS(local_req.tv_nsec);
          SubsecondTime end_time;
@@ -142,7 +142,7 @@ bool SyscallMdl::runEnter(IntPtr syscall_number, syscall_args_t &args)
             struct timespec local_rem;
             local_rem.tv_sec = 0;
             local_rem.tv_nsec = 0;
-            core->accessMemory(Core::NONE, Core::WRITE, (IntPtr) rem, (char*) &local_rem, sizeof(local_rem));
+            core->accessMemory(Core::NONE, Core::WRITE, (IntPtr) rem, (IntPtr) rem, (char*) &local_rem, sizeof(local_rem));      //saurabh  rem rep
          }
 
          // Always succeeds
@@ -210,7 +210,7 @@ bool SyscallMdl::runEnter(IntPtr syscall_number, syscall_args_t &args)
          if (thread)
          {
             char *local_cpuset = new char[cpusetsize];
-            core->accessMemory(Core::NONE, Core::READ, (IntPtr) cpuset, local_cpuset, cpusetsize);
+            core->accessMemory(Core::NONE, Core::READ, (IntPtr) cpuset, (IntPtr) cpuset, local_cpuset, cpusetsize);   //saurabh rep cpuset
 
             ScopedLock sl(Sim()->getThreadManager()->getLock());
             success = Sim()->getThreadManager()->getScheduler()->threadSetAffinity(m_thread->getId(), thread->getId(), cpusetsize, (cpu_set_t *)local_cpuset);
@@ -257,7 +257,7 @@ bool SyscallMdl::runEnter(IntPtr syscall_number, syscall_args_t &args)
             success = Sim()->getThreadManager()->getScheduler()->threadGetAffinity(m_thread->getId(), cpusetsize, (cpu_set_t *)local_cpuset);
 
             if (success && cpuset)
-               core->accessMemory(Core::NONE, Core::WRITE, (IntPtr) cpuset, local_cpuset, cpusetsize);
+               core->accessMemory(Core::NONE, Core::WRITE, (IntPtr) cpuset, (IntPtr) cpuset, local_cpuset, cpusetsize);    //saurabh rep cpuset
             if (local_cpuset)
                delete [] local_cpuset;
          }

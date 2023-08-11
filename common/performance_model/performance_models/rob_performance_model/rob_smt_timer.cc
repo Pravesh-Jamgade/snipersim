@@ -758,6 +758,7 @@ void RobSmtTimer::issueInstruction(smtthread_id_t thread_num, uint64_t idx, Subs
          Core::NONE,
          uop.getMicroOp()->isLoad() ? Core::READ : Core::WRITE,
          uop.getAddress().address,
+         uop.getAddress().virt,     //saurabh rep 760
          NULL,
          uop.getMicroOp()->getMemoryAccessSize(),
          Core::MEM_MODELED_RETURN,

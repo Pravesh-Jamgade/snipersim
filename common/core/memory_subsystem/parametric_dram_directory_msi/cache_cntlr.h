@@ -20,7 +20,7 @@
 
 #include "boost/tuple/tuple.hpp"
 
-//*
+//**
 #include "mem_level_info.h"
 
 class DramCntlrInterface;
@@ -412,7 +412,21 @@ namespace ParametricDramDirectoryMSI
          friend class CacheCntlrList;
          friend class MemoryManager;
 
-         MemDataLogger* mem_data_logger;
+         CacheBase::access_t func_get_access_type(Core::mem_op_t mem_op_type){
+            switch (mem_op_type)
+            {
+               case Core::READ:
+               case Core::READ_EX:
+                  return CacheBase::access_t::LOAD;
+
+               case Core::WRITE:
+                  return CacheBase::access_t::STORE;
+
+               default:
+                  return CacheBase::access_t::INVALID_ACCESS_TYPE;
+            }
+            
+         }
    };
 
 }

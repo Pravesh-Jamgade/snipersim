@@ -342,6 +342,7 @@ void IntervalTimer::issueMemOp(Windows::WindowEntry& micro_op)
          Core::NONE,
          micro_op.getMicroOp()->isLoad() ? Core::READ : Core::WRITE,
          micro_op.getDynMicroOp()->getAddress().address,
+         micro_op.getDynMicroOp()->getAddress().virt,             //saurabh repet
          NULL,
          micro_op.getMicroOp()->getMemoryAccessSize(),
          Core::MEM_MODELED_RETURN,

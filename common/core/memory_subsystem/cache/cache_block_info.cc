@@ -28,8 +28,7 @@ CacheBlockInfo::CacheBlockInfo(IntPtr tag, CacheState::cstate_t cstate, UInt64 o
    m_used(0),
    m_options(options)
 {
-   //* initially invalid/none of the type
-   arr_type_data = -1;
+   array_type = -1;//initially when block not assigned anything
 }
 
 CacheBlockInfo::~CacheBlockInfo()
@@ -70,7 +69,7 @@ CacheBlockInfo::clone(CacheBlockInfo* cache_block_info)
    m_owner = cache_block_info->m_owner;
    m_used = cache_block_info->m_used;
    m_options = cache_block_info->m_options;
-   arr_type_data = cache_block_info->arr_type_data;
+   array_type = cache_block_info->array_type;//pravesh
 }
 
 bool

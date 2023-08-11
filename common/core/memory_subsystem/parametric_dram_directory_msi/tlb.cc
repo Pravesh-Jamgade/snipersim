@@ -1,9 +1,10 @@
 #include "tlb.h"
 #include "stats.h"
 
+
 namespace ParametricDramDirectoryMSI
 {
-
+   
 TLB::TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UInt32 associativity, TLB *next_level)
    : m_size(num_entries)
    , m_associativity(associativity)
@@ -16,11 +17,14 @@ TLB::TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UIn
 
    registerStatsMetric(name, core_id, "access", &m_access);
    registerStatsMetric(name, core_id, "miss", &m_miss);
+   
 }
 
 bool
-TLB::lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss)
+TLB::lookup(IntPtr address, IntPtr va_address, SubsecondTime now, bool allocate_on_miss)
 {
+   
+   
    bool hit = m_cache.accessSingleLine(address, Cache::LOAD, NULL, 0, now, true);
 
    m_access++;
@@ -32,7 +36,7 @@ TLB::lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss)
 
    if (m_next_level)
    {
-      hit = m_next_level->lookup(address, now, false /* no allocation */);
+      hit = m_next_level->lookup(address, va_address, now, false /* no allocation */);    //saurabh
    }
 
    if (allocate_on_miss)

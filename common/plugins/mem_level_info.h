@@ -1,5 +1,5 @@
-#ifndef CACHE_LEVEL_H
-#define CACHE_LEVEL_H
+#ifndef MEM_LEVEL_H
+#define MEM_LEVEL_H
 
 #include <bits/stdc++.h>
 #include "fixed_types.h"
@@ -69,24 +69,28 @@ class MemDataLogger
         
         for(int i=0; i< ARRAY_TYPE_SIZE; i++)
         {
-            cout << std::dec << get_arr_name(i) << "," << type_access_arr[i] << "," << type_hit_arr[i] << "," << this->coreid <<","<< this->name << '\n';
             _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::A, "%s,%ld,%ld,%ld,%s\n", get_arr_name(i).c_str(), type_access_arr[i], type_hit_arr[i], this->coreid, this->name.c_str());
         }
 
         String s= "";
         for(int i=1; i< 13; i++)
         {
-            s = s + String(to_string(replaced_by[i]).c_str()) + ",";
+            s = s + String(std::to_string(replaced_by[i]).c_str()) + ",";
         }
         _LOG_CUSTOM_LOGGER(Log::Warning, Log::LogCustom::B, "%s %ld, %s\n", s.c_str(), this->coreid, this->name.c_str());
     }
 
+    /*
+        compute index with (old + new + SOME_DELTA) to get index of array 
+        which represent who-replaces-who, and then increase counter value
+    */
     void replacing(int new_type, int old_type)
     {
         int index = new_type + old_type;
-        if(old_type == int(ARRAY_TYPE::OA)) index += 2;
-        else if(old_type == int(ARRAY_TYPE::EA)) index += 4;
-        else if(old_type == int(ARRAY_TYPE::PA)) index += 6;
+        // add delta +0 NONE , +2 OFFSET/INDEX ARRAY, +4 EDGE/NEIGH/STRUCTURAL ARRAY, +6 PROPERTY ARRAY, 
+        if(old_type == 0) index += 2;
+        else if(old_type == 1) index += 4;
+        else if(old_type == 2) index += 6;
 
         if(index >= 1 && index < 13)
             replaced_by[index]++;

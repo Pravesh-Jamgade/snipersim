@@ -11,6 +11,8 @@
 
 #include <cstring>
 
+#include "mem_level_info.h"
+
 // Define to allow private L2 caches not to take the stack lock.
 // Works in most cases, but seems to have some more bugs or race conditions, preventing it from being ready for prime time.
 //#define PRIVATE_L2_OPTIMIZATION
@@ -287,6 +289,8 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
 CacheCntlr::~CacheCntlr()
 {
+   mem_data_logger->PrintStat();
+   
    if (isMasterCache())
    {
       delete m_master;
@@ -385,10 +389,10 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          if(count)
          {
             int arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
-            if(cache_block_info->arr_type_data>-1 && arr_type>-1){
-               mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
+            if(cache_block_info->array_type>-1 && arr_type>-1){
+               mem_data_logger->replacing(arr_type, cache_block_info->array_type);
             }
-            cache_block_info->set_arr_type(arr_type);
+            cache_block_info->set_array_type(arr_type);
          }
          
       }
@@ -409,12 +413,38 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
    {
       if(cache_hit)
       {
-         int existing_arr_type = cache_block_info->arr_type_data;
+         int existing_arr_type = cache_block_info->array_type;
          int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
          mem_data_logger->replacing(new_arr_type, existing_arr_type);
-         cache_block_info->arr_type_data = new_arr_type;
+         cache_block_info->array_type = new_arr_type;
       }
 
+      IntPtr tag;
+      UInt32 block_offset, set_index, line_index;
+      bool is_found;
+
+      getCache()->func_splitAddress(ca_address, tag, set_index, block_offset);
+      getCache()->func_find_line_index(tag, set_index, line_index, is_found);
+
+      if(cache_hit!=is_found)
+      {
+         _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), ca_address);
+      }
+      CacheBase::access_t access_type = func_get_access_type(mem_op_type);
+      bool is_other =  access_type == CacheBase::access_t::INVALID_ACCESS_TYPE;
+
+      if( !is_other )
+      {
+         bool is_load = access_type == CacheBase::access_t::LOAD;
+         if(cache_hit)
+         {
+            getCache()->func_track_hit_event(set_index, line_index, Sim()->get_array_type(ca_address), is_load);
+         }
+      }
+         
+   
+      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
+      
       ScopedLock sl(getLock());
       // Update the Cache Counters
       getCache()->updateCounters(cache_hit);
@@ -569,7 +599,6 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
       }
    }
 
-
    if (modeled && m_next_cache_cntlr && !m_perfect && Sim()->getConfig()->hasCacheEfficiencyCallbacks())
    {
       bool new_bits = cache_block_info->updateUsage(offset, data_length);
@@ -578,6 +607,8 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
          m_next_cache_cntlr->updateUsageBits(ca_address, cache_block_info->getUsage());
       }
    }
+
+   _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "entering, %s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
 
    accessCache(mem_op_type, ca_address, offset, data_buf, data_length, hit_where == HitWhere::where_t(m_mem_component) && count);
 MYLOG("access done");
@@ -679,8 +710,8 @@ MYLOG("copyDataFromNextLevel l%d", m_mem_component);
    if (cache_block_info)
    {
       int array_type = (int)Sim()->getContextHintObject()->what_is_it(address);
-      mem_data_logger->replacing(array_type, cache_block_info->arr_type_data);
-      cache_block_info->arr_type_data = array_type;
+      mem_data_logger->replacing(array_type, cache_block_info->array_type);
+      cache_block_info->array_type = array_type;
 
       // Block already present (upgrade): don't insert, but update
       updateCacheBlock(address, cstate, Transition::UPGRADE, NULL, ShmemPerfModel::_SIM_THREAD);
@@ -842,16 +873,42 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
-      // if(cache_hit)
-      // {
-      //    int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
-      //    if(arr_type>-1 && cache_block_info->arr_type_data>-1)
-      //    {
-      //       mem_data_logger->replacing(arr_type, cache_block_info->arr_type_data);
-      //    }
-      //    cache_block_info->set_arr_type(arr_type);
-      // }
+      if(cache_hit)
+      {
+         int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
+         if(arr_type>-1 && cache_block_info->array_type>-1)
+         {
+            mem_data_logger->replacing(arr_type, cache_block_info->array_type);
+         }
+         cache_block_info->set_array_type(arr_type);
+      }
       
+      IntPtr tag;
+      UInt32 block_offset, set_index, line_index;
+      bool is_found;
+
+      getCache()->func_splitAddress(address, tag, set_index, block_offset);
+      getCache()->func_find_line_index(tag, set_index, line_index, is_found);
+
+      if(cache_hit!=is_found)
+      {
+         _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), address);
+      }
+      
+      CacheBase::access_t access_type = func_get_access_type(mem_op_type);
+      bool is_other =  access_type == CacheBase::access_t::INVALID_ACCESS_TYPE;
+
+      if( !is_other )
+      {
+         bool is_load = func_get_access_type(mem_op_type)==CacheBase::access_t::LOAD;
+         if(cache_hit)
+         {
+            getCache()->func_track_hit_event(set_index, line_index, Sim()->get_array_type(address), is_load);
+         }
+      }
+
+      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
          getCache()->updateCounters(cache_hit);
@@ -1001,6 +1058,8 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
       {
          if (cache_block_info && cache_block_info->getCState() == CacheState::EXCLUSIVE)
          {
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "EXCLUSIVE, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+
             // Data is present, but still no cache_hit => this is a write on a SHARED block. Do Upgrade
             SubsecondTime latency = SubsecondTime::Zero();
             for(CacheCntlrList::iterator it = m_master->m_prev_cache_cntlrs.begin(); it != m_master->m_prev_cache_cntlrs.end(); it++)
@@ -1019,6 +1078,8 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          }
          else if (m_master->m_dram_cntlr)
          {
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "master, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+
             // Direct DRAM access
             cache_hit = true;
             if (cache_block_info)
@@ -1049,6 +1110,8 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          }
          else
          {
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "directory, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+
             initiateDirectoryAccess(mem_op_type, address, isPrefetch != Prefetch::NONE, t_issue);
          }
       }
@@ -1330,12 +1393,18 @@ CacheCntlr::accessCache(
       Core::mem_op_t mem_op_type, IntPtr ca_address, UInt32 offset,
       Byte* data_buf, UInt32 data_length, bool update_replacement)
 {
+   if(update_replacement)
+      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, ca_address);
+
+   bool mem_access = false;
    switch (mem_op_type)
    {
       case Core::READ:
       case Core::READ_EX:
          m_master->m_cache->accessSingleLine(ca_address + offset, Cache::LOAD, data_buf, data_length,
                                              getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD), update_replacement);
+         
+         mem_access = true;
          break;
 
       case Core::WRITE:
@@ -1348,11 +1417,18 @@ MYLOG("writethrough start");
             m_next_cache_cntlr->writeCacheBlock(ca_address, offset, data_buf, data_length, ShmemPerfModel::_USER_THREAD);
 MYLOG("writethrough done");
          }
+         
+         mem_access = true;
          break;
 
       default:
          LOG_PRINT_ERROR("Unsupported Mem Op Type: %u", mem_op_type);
          break;
+   }
+
+   if(mem_access && update_replacement)
+   {
+      mem_data_logger->replacing((int)Sim()->getContextHintObject()->what_is_it(ca_address), getCacheBlockInfo(ca_address)->array_type);
    }
 }
 
@@ -1444,21 +1520,20 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
       m_next_cache_cntlr->notifyPrevLevelInsert(m_core_id_master, m_mem_component, address);
 MYLOG("insertCacheBlock l%d local done", m_mem_component);
 
-   // get array type of the address
-   int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address);
-   // new arr_type information
-   cache_block_info->set_arr_type(arr_type);
+   // // pravesh
+   // int evict_cache_block_array_type = evict_block_info.array_type;
+   // int new_cache_block_array_type = Sim()->get_array_type(address);
+
+   // // update to new array type
+   // cache_block_info->set_array_type(new_cache_block_array_type);
 
    if (eviction)
-   {
-      //*
-      // array type of old cache block
-      int evict_arr_type = evict_block_info.arr_type_data;
-      // if anyone is <=0 or old and new array type are equal then "no" increase in what kind of replacement is happening
-      if(arr_type>-1 && evict_arr_type>-1)
-      {  
-         mem_data_logger->replacing(arr_type, evict_arr_type);
-      }
+   {  
+      // //count who evicts who
+      // if(evict_cache_block_array_type>-1)
+      // {
+      //    mem_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
+      // }
 
 MYLOG("evicting @%lx", evict_address);
 
@@ -1763,6 +1838,16 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
       so only when we accessed data should we return any latency */
    if (is_writeback)
       latency += m_writeback_time.getLatency();
+
+   // //**
+   // if(cache_block_info)
+   // {
+   //    int old_array_type = cache_block_info->array_type;
+   //    int new_array_type = Sim()->get_array_type(address);
+   //    cache_block_info->set_array_type(new_array_type);
+   //    if(old_array_type>-1)
+   //       mem_data_logger->replacing(new_array_type, old_array_type);
+   // }
    
    return std::pair<SubsecondTime, bool>(latency, sibling_hit);
 }
@@ -2160,6 +2245,94 @@ CacheCntlr::updateCounters(Core::mem_op_t mem_op_type, IntPtr address, bool cach
             stats.load_misses_state[state]++;
             if (overlapping) stats.load_overlapping_misses++;
          }
+      }
+   }
+
+   //sauabh
+   if ((address >= Sim()->Virtual_Neigh_Start) && (address <= Sim()->Virtual_Neigh_End))
+   {
+      //pravesh
+      mem_data_logger->add_access(2);
+
+      Sim()->Neigh_count_On_Total_Access++;
+      if (cache_hit)
+      {
+         //pravesh
+         mem_data_logger->add_hits(2);
+
+         switch (HitWhere::where_t(m_mem_component))
+         {
+         case 2:
+            Sim()->Neigh_count_On_Hit_L1_I++;
+            break;
+
+         case 3:
+            Sim()->Neigh_count_On_Hit_L1_D++;
+            break;
+         
+         case 4:
+            Sim()->Neigh_count_On_Hit_L2++;
+            break;
+         
+         case 5:
+            Sim()->Neigh_count_On_Hit_L3++;
+            break;
+         
+         case 6:
+            Sim()->Neigh_count_On_Hit_L4++;
+            break;
+
+         default:
+            Sim()->Neigh_count_On_Hit_else++;
+            break;
+         }      
+      }
+      else
+      {
+         Sim()->Neigh_count_On_Miss++;
+      }
+   }
+   else if ((address >= Sim()->Virtual_Index_Start) && (address <= Sim()->Virtual_Index_End))
+   {
+      //pravesh
+      mem_data_logger->add_access(1);
+
+      Sim()->Index_count_On_Total_Access++;
+      if (cache_hit)
+      {
+         //pravesh
+         mem_data_logger->add_hits(1);
+
+         switch (HitWhere::where_t(m_mem_component))
+         {
+         case 2:
+            Sim()->Index_count_On_Hit_L1_I++;
+            break;
+
+         case 3:
+            Sim()->Index_count_On_Hit_L1_D++;
+            break;
+         
+         case 4:
+            Sim()->Index_count_On_Hit_L2++;
+            break;
+         
+         case 5:
+            Sim()->Index_count_On_Hit_L3++;
+            break;
+         
+         case 6:
+            Sim()->Index_count_On_Hit_L4++;
+            break;
+
+         default:
+            Sim()->Index_count_On_Hit_else++;
+            break;
+         } 
+      }
+      else
+      {
+         Sim()->Index_count_On_Miss++;
       }
    }
 

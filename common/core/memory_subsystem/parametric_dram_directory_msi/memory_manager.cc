@@ -27,6 +27,7 @@
 
 namespace ParametricDramDirectoryMSI
 {
+   CircularQueue vaQueue;
 
 std::map<CoreComponentType, CacheCntlr*> MemoryManager::m_all_cache_cntlrs;
 
@@ -406,9 +407,6 @@ MemoryManager::~MemoryManager()
 
    for(i = MemComponent::FIRST_LEVEL_CACHE; i <= (UInt32)m_last_level_cache; ++i)
    {
-      //**
-      m_cache_cntlrs[(MemComponent::component_t)i]->mem_data_logger->PrintStat();
-
       delete m_cache_cntlrs[(MemComponent::component_t)i];
       m_cache_cntlrs[(MemComponent::component_t)i] = NULL;
    }
@@ -428,17 +426,20 @@ MemoryManager::coreInitiateMemoryAccess(
       MemComponent::component_t mem_component,
       Core::lock_signal_t lock_signal,
       Core::mem_op_t mem_op_type,
-      IntPtr address, UInt32 offset,
+      IntPtr address, UInt32 offset, IntPtr va_address,
       Byte* data_buf, UInt32 data_length,
-      Core::MemModeled modeled)
+      Core::MemModeled modeled)              //saurabh
 {
    LOG_ASSERT_ERROR(mem_component <= m_last_level_cache,
       "Error: invalid mem_component (%d) for coreInitiateMemoryAccess", mem_component);
 
+   // if(modeled != Core::MEM_MODELED_NONE)
+   Print_Range(address, offset, va_address);
+
    if (mem_component == MemComponent::L1_ICACHE && m_itlb)
-      accessTLB(m_itlb, address, true, modeled);
+      accessTLB(m_itlb, address, true, modeled, va_address);
    else if (mem_component == MemComponent::L1_DCACHE && m_dtlb)
-      accessTLB(m_dtlb, address, false, modeled);
+      accessTLB(m_dtlb, address, false, modeled, va_address);                                //saurabh print all TLB
 
    HitWhere::where_t hit_where = m_cache_cntlrs[mem_component]->processMemOpFromCore(
          lock_signal,
@@ -512,6 +513,120 @@ MemoryManager::coreInitiateMemoryAccess(
    }
 
    return hit_where;
+}
+
+void MemoryManager::Print_Range(IntPtr address, UInt32 offset, IntPtr va_address)
+{
+   // std::cout << address << "," << va_address << '\n';
+   // int flag = 0;  //saurabh
+   for (int i = 5; i > 0; i--)
+   {
+      IntPtr va = vaQueue.get(i);
+      if (((va_address - 48) == va)) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
+      {
+         for (int j = i-1; j > 0; j--)
+         {
+            IntPtr vb = vaQueue.get(j);
+            if (((va_address - 32) == vb))//56
+            {
+               for (int k = j-1; k > 0; k--)
+               {
+                  IntPtr vc = vaQueue.get(k);
+                  if (((va_address - 76) == vc))//152
+                  {
+                     switch(Sim()->flag_N)
+                     {
+                        case 0:
+                        {
+                           Sim()->flag_N++;
+                           std::cout << i << " " << j << " " << k << " no : 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           break;
+                        }
+                        case 1:
+                        {
+                           Sim()->flag_N++;
+                           std::cout << i << " " << j << " " << k << " Start Neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           Sim()->Virtual_Neigh_Start = address;
+                           break;
+                        }
+                        case 2:
+                        {
+                           Sim()->neigh_bounds_ready = true;
+                           // Sim()->flag_N++;
+                           Sim()->Virtual_Neigh_End = address;
+                           std::cout << i << " " << j << " " << k << " End Neigh: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           break;
+                        }
+                        default:
+                           printf("default Case");
+
+                     }// break;                     
+                  } //if (Sim()->flag_N == 2) break;                  
+               }            
+                           
+            } //if (Sim()->flag_N == 2) break;
+         }
+      
+      }//if (Sim()->flag_N == 1) break;
+      else
+      {   
+         if (((va_address - 96) == va)) //96&& ((va_address - 156) == vb) && ((va_address + 120) == vc))
+         {
+            for (int j = i-1; j > 0; j--)
+            {
+               IntPtr vb = vaQueue.get(j);
+               if (((va_address - 64) == vb))//56
+               {
+                  for (int k = j-1; k > 0; k--)
+                  {
+                     IntPtr vc = vaQueue.get(k);
+                     if (((va_address - 152) == vc))//152
+                     {
+                        printf("we are in \n");
+                        switch((Sim()->flag_I))
+                        {
+                           // case 0:
+                           // {
+                           //    Sim()->flag_I++;
+                           //    std::cout << i << " " << j << " " << k << " no : 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                           //    break;
+                           // }
+                           case 0:
+                           {
+                              Sim()->flag_I++;
+                              std::cout << i << " " << j << " " << k << " Start Index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                              Sim()->Virtual_Index_Start = address;
+                              break;
+                           }
+                           case 1:
+                           {
+                              Sim()->index_bounds_ready = true;
+                              // Sim()->flag_I++;
+                              Sim()->Virtual_Index_End = address;
+                              std::cout << i << " " << j << " " << k << " End Index: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+                              break;
+                           }
+                           default:
+                              printf("default Case");
+
+                        }// break;                     
+                     } //if (Sim()->flag_I == 3) break;                  
+                  }            
+                              
+               } //if (Sim()->flag_I == 2) break;
+            }
+         
+         } //if (Sim()->flag_I == 1) break;
+      }
+
+
+   }
+   vaQueue.enqueue(va_address);
+   
+   // if(Sim()->flag == 1)
+   // {
+   //    std::cout << "Virtual_Address: 0x" << std::hex << va_address << " Physical_Address: 0x" << address << std::dec << std::endl; //saurabh
+   // }
 }
 
 void
@@ -661,9 +776,9 @@ MYLOG("bcast msg");
 }
 
 void
-MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled)
+MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled, IntPtr va_address)
 {
-   bool hit = tlb->lookup(address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD));
+   bool hit = tlb->lookup(address, va_address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD));
    if (hit == false
        && !(modeled == Core::MEM_MODELED_NONE || modeled == Core::MEM_MODELED_COUNT)
        && m_tlb_miss_penalty.getLatency() != SubsecondTime::Zero()
