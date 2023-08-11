@@ -102,14 +102,15 @@ CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* evicti
    // cache blocks can be voluntarily flushed or invalidated due to another write request
    replacement_index = -1;
    const UInt32 index = getReplacementIndex(cntlr);
+
+   replacement_index = index;//pravesh
+
    assert(index < m_associativity);
 
    assert(eviction != NULL);
 
    if (m_cache_block_info_array[index]->isValid())
    {
-      replacement_index = index;//pravesh
-
       *eviction = true;
       // FIXME: This is a hack. I dont know if this is the best way to do
       evict_block_info->clone(m_cache_block_info_array[index]);

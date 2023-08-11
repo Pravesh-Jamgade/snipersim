@@ -12,9 +12,10 @@
 #include "core.h"
 #include "fault_injection.h"
 
-#include "cache_sample_stat.h"
 // Define to enable the set usage histogram
 //#define ENABLE_SET_USAGE_HIST
+
+#include "cache_sample_stat.h"
 
 class Cache : public CacheBase
 {
@@ -37,6 +38,7 @@ class Cache : public CacheBase
       #endif
 
       CacheSampleStat* cache_sample_stat;
+
    public:
 
       // constructors/destructors
@@ -70,6 +72,27 @@ class Cache : public CacheBase
 
       void enable() { m_enabled = true; }
       void disable() { m_enabled = false; }
+
+      void func_splitAddress(IntPtr addr, IntPtr& tag, UInt32& set_index,
+                  UInt32& block_offset){
+                        splitAddress(addr, tag, set_index, block_offset);
+                  }
+      
+      void func_cache_name(IntPtr addr){
+            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d\n", m_name.c_str(), addr);
+      }
+
+      void func_track_hit_event(UInt32 set_index, UInt32 line_index, int array_type, bool is_load)
+      {
+            cache_sample_stat->func_track_hit_event(set_index, line_index, array_type, is_load);
+      }
+
+      void func_find_line_index(IntPtr tag, UInt32 set_index, UInt32& line_index, bool& is_found)
+      {
+            CacheSet* set = m_sets[set_index];
+            CacheBlockInfo* cache_block_info = set->find(tag, &line_index);   
+            is_found = cache_block_info!=nullptr;
+      }
 };
 
 template <class T>

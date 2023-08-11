@@ -36,6 +36,7 @@ class Log
          D,
          E,
          F,
+         DBG,
          END
       };
 

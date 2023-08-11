@@ -31,17 +31,18 @@ Cache::Cache(
       m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info);
    }
 
+   this->cache_sample_stat = new CacheSampleStat(core_id, name, num_sets, m_associativity);
+
    #ifdef ENABLE_SET_USAGE_HIST
    m_set_usage_hist = new UInt64[m_num_sets];
    for (UInt32 i = 0; i < m_num_sets; i++)
       m_set_usage_hist[i] = 0;
    #endif
-
-   cache_sample_stat = new CacheSampleStat(core_id, name, num_sets, associativity);
 }
 
 Cache::~Cache()
 {
+   delete cache_sample_stat;
    #ifdef ENABLE_SET_USAGE_HIST
    printf("Cache %s set usage:", m_name.c_str());
    for (SInt32 i = 0; i < (SInt32) m_num_sets; i++)
@@ -87,6 +88,8 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
       Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement)
 {
    //assert((buff == NULL) == (bytes == 0));
+   if(update_replacement)
+      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "access, %s, %d\n", m_name.c_str(), addr);
 
    IntPtr tag;
    UInt32 set_index;
@@ -101,11 +104,8 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
    if (cache_block_info == NULL)
       return NULL;
 
-   //pravesh
-   if (access_type != LOAD)
-      cache_sample_stat->cache_writes[set_index][line_index]++;
-   if(update_replacement)
-      cache_sample_stat->func_track_set(set_index, line_index, Sim()->get_array_type(addr));
+   bool is_load = access_type==LOAD?true:false;
+   func_track_hit_event(set_index, line_index, Sim()->get_array_type(addr), is_load);
 
    if (access_type == LOAD)
    {
@@ -133,6 +133,8 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       CacheBlockInfo* evict_block_info, Byte* evict_buff,
       SubsecondTime now, CacheCntlr *cntlr)
 {
+   _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "insert, %s, %d\n", m_name.c_str(), addr);
+
    IntPtr tag;
    UInt32 set_index;
    splitAddress(addr, tag, set_index);
@@ -140,19 +142,19 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
    CacheBlockInfo* cache_block_info = CacheBlockInfo::create(m_cache_type);
    cache_block_info->setTag(tag);
 
-   int replacement_index;//pravesh
+   int index;//pravesh
 
    m_sets[set_index]->insert(cache_block_info, fill_buff,
-         eviction, evict_block_info, evict_buff, replacement_index, cntlr);
+         eviction, evict_block_info, evict_buff, index, cntlr);
    *evict_addr = tagToAddress(evict_block_info->getTag());
 
    //pravesh
-   if(*eviction || replacement_index!=-1)
+   if(*eviction)
    {
-      cache_sample_stat->func_track_writes_before_evict(set_index, replacement_index, Sim()->get_array_type(addr));
-      //upon eviction lru bit must be set to 0
-      cache_sample_stat->cache_lru_info[set_index][replacement_index] = 0;
+      cache_sample_stat->func_track_access_before_evict(set_index, index, evict_block_info->array_type);
+      cache_sample_stat->func_track_evict_event(set_index, index, evict_block_info->array_type, evict_block_info->getTag());
    }
+   cache_sample_stat->func_track_miss_event(set_index, index, Sim()->get_array_type(addr), tag);
 
    if (m_fault_injector) {
       // NOTE: no callback is generated for read of evicted data
