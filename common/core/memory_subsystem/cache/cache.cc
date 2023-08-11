@@ -155,7 +155,7 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       cache_sample_stat->func_track_evict_event(set_index, index, evict_block_info->array_type, evict_block_info->getTag());
    
       
-      int old_array_type = cache_block_info->array_type;
+      int old_array_type = evict_block_info->array_type;
       int new_array_type = Sim()->get_array_type(addr);
       cache_block_info->set_array_type(new_array_type);
       if(old_array_type>-1)
