@@ -5,6 +5,8 @@
 #include "cache_state.h"
 #include "cache_base.h"
 
+#include "mem_level_info.h"
+
 class CacheBlockInfo
 {
    public:
@@ -90,6 +92,7 @@ class CacheCntlr
    public:
       virtual bool isInLowerLevelCache(CacheBlockInfo *block_info) { return false; }
       virtual void incrementQBSLookupCost() {}
+      MemDataLogger* cache_data_logger;
 };
 
 #endif /* __CACHE_BLOCK_INFO_H__ */

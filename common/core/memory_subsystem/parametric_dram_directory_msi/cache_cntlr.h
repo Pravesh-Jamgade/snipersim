@@ -412,8 +412,6 @@ namespace ParametricDramDirectoryMSI
          friend class CacheCntlrList;
          friend class MemoryManager;
 
-         MemDataLogger* cache_data_logger;
-
          CacheBase::access_t func_get_access_type(Core::mem_op_t mem_op_type){
             switch (mem_op_type)
             {

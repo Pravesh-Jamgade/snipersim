@@ -1360,12 +1360,16 @@ CacheCntlr::accessCache(
    if(update_replacement)
       _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, ca_address);
 
+   bool mem_access = false;
+   int old_arr_type = getCacheBlockInfo(ca_address)->array_type;
+
    switch (mem_op_type)
    {
       case Core::READ:
       case Core::READ_EX:
          m_master->m_cache->accessSingleLine(ca_address + offset, Cache::LOAD, data_buf, data_length,
                                              getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD), update_replacement);
+         mem_access = true;
          break;
 
       case Core::WRITE:
@@ -1378,11 +1382,18 @@ MYLOG("writethrough start");
             m_next_cache_cntlr->writeCacheBlock(ca_address, offset, data_buf, data_length, ShmemPerfModel::_USER_THREAD);
 MYLOG("writethrough done");
          }
+
+         mem_access = true;
          break;
 
       default:
          LOG_PRINT_ERROR("Unsupported Mem Op Type: %u", mem_op_type);
          break;
+   }
+
+   if(mem_access && update_replacement)
+   {
+      cache_data_logger->replacing(Sim()->get_array_type(ca_address), old_arr_type);
    }
 }
 
@@ -1474,20 +1485,20 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
       m_next_cache_cntlr->notifyPrevLevelInsert(m_core_id_master, m_mem_component, address);
 MYLOG("insertCacheBlock l%d local done", m_mem_component);
 
-   // pravesh
-   int evict_cache_block_array_type = evict_block_info.array_type;
-   int new_cache_block_array_type = Sim()->get_array_type(address);
+   // // pravesh
+   // int evict_cache_block_array_type = evict_block_info.array_type;
+   // int new_cache_block_array_type = Sim()->get_array_type(address);
 
-   // update to new array type
-   cache_block_info->set_array_type(new_cache_block_array_type);
+   // // update to new array type
+   // cache_block_info->set_array_type(new_cache_block_array_type);
 
    if (eviction)
    {  
-      //count who evicts who
-      if(evict_cache_block_array_type>-1)
-      {
-         cache_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
-      }
+      // //count who evicts who
+      // if(evict_cache_block_array_type>-1)
+      // {
+      //    cache_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
+      // }
 
 MYLOG("evicting @%lx", evict_address);
 
@@ -1793,15 +1804,15 @@ CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Tr
    if (is_writeback)
       latency += m_writeback_time.getLatency();
 
-   //**
-   if(cache_block_info)
-   {
-      int old_array_type = cache_block_info->array_type;
-      int new_array_type = Sim()->get_array_type(address);
-      cache_block_info->set_array_type(new_array_type);
-      if(old_array_type>-1)
-         cache_data_logger->replacing(new_array_type, old_array_type);
-   }
+   // //**
+   // if(cache_block_info)
+   // {
+   //    int old_array_type = cache_block_info->array_type;
+   //    int new_array_type = Sim()->get_array_type(address);
+   //    cache_block_info->set_array_type(new_array_type);
+   //    if(old_array_type>-1)
+   //       cache_data_logger->replacing(new_array_type, old_array_type);
+   // }
    
    return std::pair<SubsecondTime, bool>(latency, sibling_hit);
 }
