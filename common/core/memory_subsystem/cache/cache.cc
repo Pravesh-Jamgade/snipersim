@@ -105,7 +105,7 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
       return NULL;
 
    bool is_load = access_type==LOAD?true:false;
-   func_track_hit_event(set_index, line_index, Sim()->get_array_type(addr), is_load);
+   func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(addr), is_load);
 
    if (access_type == LOAD)
    {
@@ -149,7 +149,7 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
    *evict_addr = tagToAddress(evict_block_info->getTag());
 
    // pravesh
-   int new_cache_block_array_type = Sim()->get_array_type(addr);
+   int new_cache_block_array_type = (int)Sim()->getContextHintObject()->what_is_it(addr);
    // update to new array type
    cache_block_info->set_array_type(new_cache_block_array_type);
 
@@ -163,7 +163,7 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       cntlr->mem_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
       
    }
-   cache_sample_stat->func_track_miss_event(set_index, index, Sim()->get_array_type(addr), tag);
+   cache_sample_stat->func_track_miss_event(set_index, index, (int)Sim()->getContextHintObject()->what_is_it(addr), tag);
 
    if (m_fault_injector) {
       // NOTE: no callback is generated for read of evicted data

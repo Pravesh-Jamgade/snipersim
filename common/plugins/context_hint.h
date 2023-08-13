@@ -131,6 +131,12 @@ class ContextHint
         }
     }
 
+    /*
+        NA: 0
+        OA: 1
+        EA: 2
+        PA: 3
+    */
     ARRAY_TYPE what_is_it(IntPtr req_addr, int level=0)
     {
         if(oa_start <= req_addr && allow_offset)

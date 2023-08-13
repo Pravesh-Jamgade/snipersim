@@ -106,6 +106,7 @@ public:
    */
    int get_array_type(IntPtr address)
    {
+      exit(-1);
       // if(neigh_bounds_ready){
          if(Virtual_Neigh_Start <= address && address <= Virtual_Neigh_End){
             return 2;

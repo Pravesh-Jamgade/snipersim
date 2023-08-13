@@ -389,7 +389,7 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          if(count)
          {
             int arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address, m_mem_component);
-            if(cache_block_info->array_type>-1 && arr_type>-1){
+            if(cache_block_info->array_type>-1){
                mem_data_logger->replacing(arr_type, cache_block_info->array_type);
             }
             cache_block_info->set_array_type(arr_type);
@@ -415,7 +415,8 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
       {
          int existing_arr_type = cache_block_info->array_type;
          int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
-         mem_data_logger->replacing(new_arr_type, existing_arr_type);
+         if(existing_arr_type > -1)
+            mem_data_logger->replacing(new_arr_type, existing_arr_type);
          cache_block_info->array_type = new_arr_type;
       }
 
@@ -438,7 +439,7 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          bool is_load = access_type == CacheBase::access_t::LOAD;
          if(cache_hit)
          {
-            getCache()->func_track_hit_event(set_index, line_index, Sim()->get_array_type(ca_address), is_load);
+            getCache()->func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(ca_address), is_load);
          }
       }
          
@@ -710,7 +711,8 @@ MYLOG("copyDataFromNextLevel l%d", m_mem_component);
    if (cache_block_info)
    {
       int array_type = (int)Sim()->getContextHintObject()->what_is_it(address);
-      mem_data_logger->replacing(array_type, cache_block_info->array_type);
+      if(cache_block_info->array_type > -1)
+         mem_data_logger->replacing(array_type, cache_block_info->array_type);
       cache_block_info->array_type = array_type;
 
       // Block already present (upgrade): don't insert, but update
@@ -876,7 +878,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
       if(cache_hit)
       {
          int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
-         if(arr_type>-1 && cache_block_info->array_type>-1)
+         if(cache_block_info->array_type>-1)
          {
             mem_data_logger->replacing(arr_type, cache_block_info->array_type);
          }
@@ -903,7 +905,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          bool is_load = func_get_access_type(mem_op_type)==CacheBase::access_t::LOAD;
          if(cache_hit)
          {
-            getCache()->func_track_hit_event(set_index, line_index, Sim()->get_array_type(address), is_load);
+            getCache()->func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(address), is_load);
          }
       }
 
@@ -1426,10 +1428,11 @@ MYLOG("writethrough done");
          break;
    }
 
-   if(mem_access && update_replacement)
+   if(mem_access && update_replacement && getCacheBlockInfo(ca_address)->array_type > -1)
    {
       mem_data_logger->replacing((int)Sim()->getContextHintObject()->what_is_it(ca_address), getCacheBlockInfo(ca_address)->array_type);
    }
+   getCacheBlockInfo(ca_address)->array_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
 }
 
 
