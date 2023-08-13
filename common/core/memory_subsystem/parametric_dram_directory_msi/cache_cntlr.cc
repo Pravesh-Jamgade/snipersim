@@ -427,10 +427,10 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
       getCache()->func_splitAddress(ca_address, tag, set_index, block_offset);
       getCache()->func_find_line_index(tag, set_index, line_index, is_found);
 
-      if(cache_hit!=is_found)
-      {
-         _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), ca_address);
-      }
+      // if(cache_hit!=is_found)
+      // {
+      //    _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), ca_address);
+      // }
       CacheBase::access_t access_type = func_get_access_type(mem_op_type);
       bool is_other =  access_type == CacheBase::access_t::INVALID_ACCESS_TYPE;
 
@@ -444,7 +444,7 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
       }
          
    
-      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
+      // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
       
       ScopedLock sl(getLock());
       // Update the Cache Counters
@@ -609,7 +609,7 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
       }
    }
 
-   _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "entering, %s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
+   // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "entering, %s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
 
    accessCache(mem_op_type, ca_address, offset, data_buf, data_length, hit_where == HitWhere::where_t(m_mem_component) && count);
 MYLOG("access done");
@@ -892,10 +892,10 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
       getCache()->func_splitAddress(address, tag, set_index, block_offset);
       getCache()->func_find_line_index(tag, set_index, line_index, is_found);
 
-      if(cache_hit!=is_found)
-      {
-         _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), address);
-      }
+      // if(cache_hit!=is_found)
+      // {
+      //    _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "[%d!=%d]%s,%d", cache_hit, is_found, string(MemComponentString(m_mem_component)).c_str(), address);
+      // }
       
       CacheBase::access_t access_type = func_get_access_type(mem_op_type);
       bool is_other =  access_type == CacheBase::access_t::INVALID_ACCESS_TYPE;
@@ -909,7 +909,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          }
       }
 
-      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+      // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
 
       ScopedLock sl(getLock());
       if (isPrefetch == Prefetch::NONE)
@@ -1060,7 +1060,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
       {
          if (cache_block_info && cache_block_info->getCState() == CacheState::EXCLUSIVE)
          {
-            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "EXCLUSIVE, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+            // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "EXCLUSIVE, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
 
             // Data is present, but still no cache_hit => this is a write on a SHARED block. Do Upgrade
             SubsecondTime latency = SubsecondTime::Zero();
@@ -1080,7 +1080,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          }
          else if (m_master->m_dram_cntlr)
          {
-            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "master, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+            // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "master, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
 
             // Direct DRAM access
             cache_hit = true;
@@ -1112,7 +1112,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          }
          else
          {
-            _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "directory, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
+            // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "directory, %s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
 
             initiateDirectoryAccess(mem_op_type, address, isPrefetch != Prefetch::NONE, t_issue);
          }
@@ -1395,8 +1395,8 @@ CacheCntlr::accessCache(
       Core::mem_op_t mem_op_type, IntPtr ca_address, UInt32 offset,
       Byte* data_buf, UInt32 data_length, bool update_replacement)
 {
-   if(update_replacement)
-      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, ca_address);
+   // if(update_replacement)
+   //    _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, ca_address);
 
    bool mem_access = false;
    switch (mem_op_type)

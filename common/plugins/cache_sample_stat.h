@@ -239,7 +239,7 @@ class CacheSampleStat
     /*upon hit [ miss(reuse dist=infinite or -1) we are not tracking that's why called local] track reuse distance*/
     void func_track_hit_event(UInt32 set_index, UInt32 line_index, int array_type, bool is_load)
     {
-        if(!func_is_it_sampled_set(set_index) || array_type<0)
+        if(!func_is_it_sampled_set(set_index) || array_type<=-1)
             return;
         
         //track lru bit info as reuse distance
@@ -268,7 +268,7 @@ class CacheSampleStat
     */
     void func_track_evict_event(UInt32 set_index, UInt32 line_index, int array_type, UInt64 tag)
     {
-        if(!func_is_it_sampled_set(set_index) || array_type<0)
+        if(!func_is_it_sampled_set(set_index) || array_type<=-1)
             return;
 
         UInt32 index = 0xffff;
@@ -349,7 +349,7 @@ class CacheSampleStat
     */
     void func_track_miss_event(UInt32 set_index, UInt32 index, int req_array_type, UInt64 req_tag)
     {
-        if(!func_is_it_sampled_set(set_index) || req_array_type<0)
+        if(!func_is_it_sampled_set(set_index) || req_array_type<=-1)
             return;
         
         // check if missed address found in hitstory, if found then remove it from history
@@ -410,7 +410,7 @@ class CacheSampleStat
     */
     void func_track_access_before_evict(UInt32 set_index, UInt32 replacement_index, int array_type)
     {
-        if(!func_is_it_sampled_set(set_index) || array_type<0)
+        if(!func_is_it_sampled_set(set_index) || array_type<=-1)
             return;
         local->compute_access_before_evict(m_lru_info[set_index][replacement_index]->demand_accesses, array_type);//track accesses before eviction
         m_lru_info[set_index][replacement_index]->reset(associativity);// reset for new cache block

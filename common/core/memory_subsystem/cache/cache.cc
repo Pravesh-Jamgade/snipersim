@@ -88,8 +88,8 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
       Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement)
 {
    //assert((buff == NULL) == (bytes == 0));
-   if(update_replacement)
-      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "access, %s, %d\n", m_name.c_str(), addr);
+   // if(update_replacement)
+   //    _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "access, %s, %d\n", m_name.c_str(), addr);
 
    IntPtr tag;
    UInt32 set_index;
@@ -133,7 +133,7 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       CacheBlockInfo* evict_block_info, Byte* evict_buff,
       SubsecondTime now, CacheCntlr *cntlr)
 {
-   _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "insert, %s, %d\n", m_name.c_str(), addr);
+   // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "insert, %s, %d\n", m_name.c_str(), addr);
 
    IntPtr tag;
    UInt32 set_index;
@@ -150,8 +150,6 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
 
    // pravesh
    int new_cache_block_array_type = (int)Sim()->getContextHintObject()->what_is_it(addr);
-   // update to new array type
-   cache_block_info->set_array_type(new_cache_block_array_type);
 
    //pravesh
    if(*eviction)
@@ -160,10 +158,14 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       cache_sample_stat->func_track_evict_event(set_index, index, evict_block_info->array_type, evict_block_info->getTag());
 
       int evict_cache_block_array_type = evict_block_info->array_type;
-      cntlr->mem_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
+      if(evict_cache_block_array_type > -1)
+         cntlr->mem_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
       
    }
    cache_sample_stat->func_track_miss_event(set_index, index, (int)Sim()->getContextHintObject()->what_is_it(addr), tag);
+  
+   // update to new array type
+   cache_block_info->set_array_type(new_cache_block_array_type);
 
    if (m_fault_injector) {
       // NOTE: no callback is generated for read of evicted data
