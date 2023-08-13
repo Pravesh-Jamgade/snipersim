@@ -88,8 +88,8 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
       Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement)
 {
    //assert((buff == NULL) == (bytes == 0));
-   if(update_replacement)
-      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "access, %s, %d\n", m_name.c_str(), addr);
+   // if(update_replacement)
+   //    _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "access, %s, %d\n", m_name.c_str(), addr);
 
    IntPtr tag;
    UInt32 set_index;
@@ -133,7 +133,7 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       CacheBlockInfo* evict_block_info, Byte* evict_buff,
       SubsecondTime now, CacheCntlr *cntlr)
 {
-   _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "insert, %s, %d\n", m_name.c_str(), addr);
+   // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "insert, %s, %d\n", m_name.c_str(), addr);
 
    IntPtr tag;
    UInt32 set_index;
