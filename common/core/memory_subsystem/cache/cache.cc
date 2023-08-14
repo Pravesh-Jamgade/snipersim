@@ -38,6 +38,8 @@ Cache::Cache(
    for (UInt32 i = 0; i < m_num_sets; i++)
       m_set_usage_hist[i] = 0;
    #endif
+
+   once_0=once_1=once_2=once_3=once_21=once_23=once_31=once_32=once_12=once_13=flag = false;
 }
 
 Cache::~Cache()
@@ -151,21 +153,74 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
    // pravesh
    int new_cache_block_array_type = (int)Sim()->getContextHintObject()->what_is_it(addr);
 
+   int evict_cache_block_array_type = -1;
+   if(evict_block_info!=NULL)
+      evict_cache_block_array_type = evict_block_info->array_type;
+
    //pravesh
    if(*eviction)
    {
       cache_sample_stat->func_track_access_before_evict(set_index, index, evict_block_info->array_type);
       cache_sample_stat->func_track_evict_event(set_index, index, evict_block_info->array_type, evict_block_info->getTag());
 
-      int evict_cache_block_array_type = evict_block_info->array_type;
       if(evict_cache_block_array_type > -1)
          cntlr->mem_data_logger->replacing(new_cache_block_array_type, evict_cache_block_array_type);
       
    }
    cache_sample_stat->func_track_miss_event(set_index, index, (int)Sim()->getContextHintObject()->what_is_it(addr), tag);
-  
+   
    // update to new array type
    cache_block_info->set_array_type(new_cache_block_array_type);
+
+   if(new_cache_block_array_type==0 && evict_cache_block_array_type==-1 && !once_0)
+   {
+      once_0=true;flag=true;
+   }
+   if(new_cache_block_array_type==1 && evict_cache_block_array_type==-1 && !once_1)
+   {
+      once_1=true;flag=true;
+   }
+   if(new_cache_block_array_type==2 && evict_cache_block_array_type==-1 && !once_2)
+   {
+      once_2=true;flag=true;
+   }
+   if(new_cache_block_array_type==3 && evict_cache_block_array_type==-1 && !once_3)
+   {
+      once_3=true;flag=true;
+   }
+      
+
+   if(new_cache_block_array_type==1 && evict_cache_block_array_type==2 && !once_12)
+   {
+      once_12=true;flag=true;
+   }
+   if(new_cache_block_array_type==1 && evict_cache_block_array_type==3 && !once_13)
+   {
+      once_13=true;flag=true;
+   }
+   if(new_cache_block_array_type==2 && evict_cache_block_array_type==1 && !once_21)
+   {
+      once_21=true;flag=true;
+   }
+   if(new_cache_block_array_type==2 && evict_cache_block_array_type==3 && !once_23)
+   {
+      once_23=true;flag=true;
+   }
+   if(new_cache_block_array_type==3 && evict_cache_block_array_type==1 && !once_31)
+   {
+      once_31=true;flag=true;
+   }
+   if(new_cache_block_array_type==3 && evict_cache_block_array_type==2 && !once_32)
+   {
+      once_32=true;flag=true;
+   }
+
+   if(flag)
+   {
+      _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s: %d-->%d: %d\n", m_name.c_str(), new_cache_block_array_type, evict_cache_block_array_type, eviction);
+      flag=false;
+   }
+
 
    if (m_fault_injector) {
       // NOTE: no callback is generated for read of evicted data

@@ -28,7 +28,7 @@ CacheBlockInfo::CacheBlockInfo(IntPtr tag, CacheState::cstate_t cstate, UInt64 o
    m_used(0),
    m_options(options)
 {
-   array_type = -1;//initially when block not assigned anything
+   array_type = -1;
 }
 
 CacheBlockInfo::~CacheBlockInfo()

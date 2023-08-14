@@ -39,6 +39,9 @@ class Cache : public CacheBase
 
       CacheSampleStat* cache_sample_stat;
 
+      bool once_0, once_1, once_2, once_3, once_12, once_13, once_21, once_23, once_31, once_32;
+      bool flag;
+      
    public:
 
       // constructors/destructors
