@@ -411,10 +411,10 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 
    if (count)
    {
+      int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
       if(cache_hit)
       {
          int existing_arr_type = cache_block_info->array_type;
-         int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(ca_address);
          if(existing_arr_type > -1)
             mem_data_logger->replacing(new_arr_type, existing_arr_type);
          cache_block_info->array_type = new_arr_type;
@@ -439,10 +439,11 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          bool is_load = access_type == CacheBase::access_t::LOAD;
          if(cache_hit)
          {
-            getCache()->func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(ca_address), is_load);
+            getCache()->func_add_hit(new_arr_type);
+            getCache()->func_track_hit_event(set_index, line_index, new_arr_type, is_load);
          }
       }
-         
+      getCache()->func_add_accesses(new_arr_type);
    
       // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, ca_address);
       
@@ -875,14 +876,14 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    if (count)
    {
+      int new_arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
       if(cache_hit)
       {
-         int arr_type = (int)Sim()->getContextHintObject()->what_is_it(address, m_mem_component);
          if(cache_block_info->array_type>-1)
          {
-            mem_data_logger->replacing(arr_type, cache_block_info->array_type);
+            mem_data_logger->replacing(new_arr_type, cache_block_info->array_type);
          }
-         cache_block_info->set_array_type(arr_type);
+         cache_block_info->set_array_type(new_arr_type);
       }
       
       IntPtr tag;
@@ -905,9 +906,11 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
          bool is_load = func_get_access_type(mem_op_type)==CacheBase::access_t::LOAD;
          if(cache_hit)
          {
-            getCache()->func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(address), is_load);
+            getCache()->func_add_hit(new_arr_type);
+            getCache()->func_track_hit_event(set_index, line_index, new_arr_type, is_load);
          }
       }
+      getCache()->func_add_accesses(new_arr_type);
 
       // _LOG_CUSTOM_LOGGER(Log::Warning, Log::DBG, "%s, %d, %d, %d, %d\n", string(MemComponentString(m_mem_component)).c_str(), m_core_id, cache_hit, address);
 

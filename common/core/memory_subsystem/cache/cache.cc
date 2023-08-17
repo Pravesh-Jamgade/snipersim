@@ -106,9 +106,12 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
    if (cache_block_info == NULL)
       return NULL;
 
-   bool is_load = access_type==LOAD?true:false;
-   func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(addr), is_load);
-
+   if(update_replacement)
+   {
+      bool is_load = access_type==LOAD?true:false;
+      func_track_hit_event(set_index, line_index, (int)Sim()->getContextHintObject()->what_is_it(addr), is_load);
+   }
+   
    if (access_type == LOAD)
    {
       // NOTE: assumes error occurs in memory. If we want to model bus errors, insert the error into buff instead

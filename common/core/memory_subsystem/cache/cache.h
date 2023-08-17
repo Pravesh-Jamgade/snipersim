@@ -96,6 +96,16 @@ class Cache : public CacheBase
             CacheBlockInfo* cache_block_info = set->find(tag, &line_index);   
             is_found = cache_block_info!=nullptr;
       }
+
+      void func_add_accesses(int array_type)
+      {
+            cache_sample_stat->func_track_total_access(array_type);
+      }
+
+      void func_add_hit(int array_type)
+      {
+            cache_sample_stat->func_track_hit_access(array_type);
+      }
 };
 
 template <class T>

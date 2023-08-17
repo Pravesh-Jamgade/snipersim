@@ -130,11 +130,8 @@ class CacheSampleStat
     /*set to its data*/
     SetTracker* local, *global;
 
-    /*track per block writes until eviction*/
-    // UInt64** cache_accesses;
-
-    /*track per set lru bit information of calculating reuse distance*/
-    // UInt64** cache_lru_info;
+    /**/
+    UInt64* cache_accesses, *cache_hit;
 
     /*last m_associative size history tracker*/
     class TAG
@@ -185,6 +182,9 @@ class CacheSampleStat
 
         this->associativity = associativity;
 
+        this->cache_accesses = (UInt64*)calloc(4,sizeof(UInt64));
+        this->cache_hit = (UInt64*)calloc(4,sizeof(UInt64));
+
         this->local = new SetTracker(coreid, cache_name, num_sets, associativity, true);
         this->global = new SetTracker(coreid, cache_name, num_sets, associativity, false);
 
@@ -224,12 +224,24 @@ class CacheSampleStat
     {
         delete local;
         delete global;
+
+        fstream f;
+        f.open("cache_mem.stat", fstream::app | fstream::out);
+        f << "core,cache,array,hit_rate\n";
+        for(int i=0; i< 4; i++)
+        {
+            double hit_rate = (double)cache_hit[i]/(double)cache_accesses[i];
+            f << coreid << "," << cache_name << "," << i << "," << hit_rate << '\n';
+        }
+        f<<"---------------------------------------------------------------------------\n";
     }
 
+    //DISABLED SAMPLING
     /*check if set is amongst sampled set: true if yes*/
     bool func_is_it_sampled_set(int set_no)
     {
-        return sampled_sets.find(set_no)!=sampled_sets.end();
+        // return sampled_sets.find(set_no)!=sampled_sets.end();
+        return true;
     }
 
     /*
@@ -400,7 +412,6 @@ class CacheSampleStat
         m_lru_info[set_index][index]->lru = 0;
         m_lru_info[set_index][index]->tag = req_tag;
         m_lru_info[set_index][index]->valid = true;
-
     }
 
     /*
@@ -416,10 +427,15 @@ class CacheSampleStat
         m_lru_info[set_index][replacement_index]->reset(associativity);// reset for new cache block
     }
 
-    void print()
+    void  func_track_hit_access(int array_type)
     {
-        // local->PrintStat();
-        // global->PrintStat();
+        if(array_type<=-1) return;
+        cache_hit[array_type]++;
+    }
+    void func_track_total_access(int array_type)
+    {
+        if(array_type<=-1) return;
+        cache_accesses[array_type]++;
     }
 };
 #endif
