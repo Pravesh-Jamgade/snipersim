@@ -27,15 +27,20 @@ class ContextRange
     {
         for(size_t i=0; i< range.size()-1; i++)
         {
-            if(range[i] <= addr && addr <= range[i+1])
+            if(range[i] <= addr)
             {
-                return true;
+                if(addr <= range[i+1])
+                    return true;
             }
         }
         return false;
         // if(addr < *(range.begin()) || addr > *(range.end()))
         //     return false;
         // return true;
+    }
+
+    bool has_atleast_two(){
+        return range.size()>=2;
     }
 };
 
@@ -99,23 +104,28 @@ class ContextHint
     */
     ARRAY_TYPE what_is_it(IntPtr req_addr, int level=0)
     {
-        for(int i=1; i< 4; i++)
+        if(ctxr[1].has_atleast_two())
         {
-            if(ctxr[i].find(req_addr))
+            if(ctxr[1].find(req_addr))
             {
-                if(i==1) {
-                    return ARRAY_TYPE::OA;
-                }
-                if(i==2) 
-                {
-                    return ARRAY_TYPE::EA;
-                }
-                if(i==3) 
-                {
-                    return ARRAY_TYPE::PA;
-                }
+                return ARRAY_TYPE::OA;
             }
         }
+        if(ctxr[2].has_atleast_two())
+        {
+            if(ctxr[2].find(req_addr))
+            {
+                return ARRAY_TYPE::EA;
+            }
+        }
+        if(ctxr[3].has_atleast_two())
+        {
+            if(ctxr[3].find(req_addr))
+            {
+                return ARRAY_TYPE::PA;
+            }
+        }
+
         return ARRAY_TYPE::NONE;
     }
 
