@@ -421,15 +421,15 @@ MemoryManager::coreInitiateMemoryAccess(
       Core::mem_op_t mem_op_type,
       IntPtr address, UInt32 offset,
       Byte* data_buf, UInt32 data_length,
-      Core::MemModeled modeled)
+      Core::MemModeled modeled, IntPtr pc)
 {
    LOG_ASSERT_ERROR(mem_component <= m_last_level_cache,
       "Error: invalid mem_component (%d) for coreInitiateMemoryAccess", mem_component);
 
    if (mem_component == MemComponent::L1_ICACHE && m_itlb)
-      accessTLB(m_itlb, address, true, modeled);
+      accessTLB(m_itlb, address, true, modeled, pc);
    else if (mem_component == MemComponent::L1_DCACHE && m_dtlb)
-      accessTLB(m_dtlb, address, false, modeled);
+      accessTLB(m_dtlb, address, false, modeled, pc);
 
    return m_cache_cntlrs[mem_component]->processMemOpFromCore(
          lock_signal,
@@ -587,9 +587,9 @@ MYLOG("bcast msg");
 }
 
 void
-MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled)
+MemoryManager::accessTLB(TLB * tlb, IntPtr address, bool isIfetch, Core::MemModeled modeled, IntPtr pc)
 {
-   bool hit = tlb->lookup(address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD));
+   bool hit = tlb->lookup(address, getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD), pc);
    if (hit == false
        && !(modeled == Core::MEM_MODELED_NONE || modeled == Core::MEM_MODELED_COUNT)
        && m_tlb_miss_penalty.getLatency() != SubsecondTime::Zero()

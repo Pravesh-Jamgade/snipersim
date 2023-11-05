@@ -60,6 +60,9 @@ class CacheBlockInfo
       bool updateUsage(BitsUsedType used);
 
       static const char* getOptionName(option_t option);
+
+      /* if 1, dead else alive */
+      int used;
 };
 
 class CacheCntlr

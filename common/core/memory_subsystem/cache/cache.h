@@ -12,6 +12,8 @@
 #include "core.h"
 #include "fault_injection.h"
 
+#include "DOA.h"
+
 // Define to enable the set usage histogram
 //#define ENABLE_SET_USAGE_HIST
 
@@ -31,6 +33,7 @@ class Cache : public CacheBase
 
       FaultInjector *m_fault_injector;
 
+      DOA* doa;
       #ifdef ENABLE_SET_USAGE_HIST
       UInt64* m_set_usage_hist;
       #endif

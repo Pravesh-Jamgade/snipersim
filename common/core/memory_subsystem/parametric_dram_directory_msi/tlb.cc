@@ -12,6 +12,7 @@ TLB::TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UIn
    , m_access(0)
    , m_miss(0)
 {
+   this->name = name;
    LOG_ASSERT_ERROR((num_entries / associativity) * associativity == num_entries, "Invalid TLB configuration: num_entries(%d) must be a multiple of the associativity(%d)", num_entries, associativity);
 
    registerStatsMetric(name, core_id, "access", &m_access);
@@ -19,7 +20,7 @@ TLB::TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UIn
 }
 
 bool
-TLB::lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss)
+TLB::lookup(IntPtr address, SubsecondTime now, IntPtr pc, bool allocate_on_miss)
 {
    bool hit = m_cache.accessSingleLine(address, Cache::LOAD, NULL, 0, now, true);
 
@@ -37,14 +38,14 @@ TLB::lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss)
 
    if (allocate_on_miss)
    {
-      allocate(address, now);
+      allocate(address, now, pc);
    }
 
    return hit;
 }
 
 void
-TLB::allocate(IntPtr address, SubsecondTime now)
+TLB::allocate(IntPtr address, SubsecondTime now, IntPtr pc)
 {
    bool eviction;
    IntPtr evict_addr;
@@ -53,7 +54,7 @@ TLB::allocate(IntPtr address, SubsecondTime now)
 
    // Use next level as a victim cache
    if (eviction && m_next_level)
-      m_next_level->allocate(evict_addr, now);
+      m_next_level->allocate(evict_addr, now, pc);
 }
 
 }

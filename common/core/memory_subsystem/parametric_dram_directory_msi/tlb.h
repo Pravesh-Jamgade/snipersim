@@ -4,6 +4,7 @@
 #include "fixed_types.h"
 #include "cache.h"
 
+
 namespace ParametricDramDirectoryMSI
 {
    class TLB
@@ -20,10 +21,12 @@ namespace ParametricDramDirectoryMSI
          TLB *m_next_level;
 
          UInt64 m_access, m_miss;
+
+         String name;
       public:
          TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UInt32 associativity, TLB *next_level);
-         bool lookup(IntPtr address, SubsecondTime now, bool allocate_on_miss = true);
-         void allocate(IntPtr address, SubsecondTime now);
+         bool lookup(IntPtr address, SubsecondTime now, IntPtr pc, bool allocate_on_miss = true);
+         void allocate(IntPtr address, SubsecondTime now, IntPtr pc);
    };
 }
 

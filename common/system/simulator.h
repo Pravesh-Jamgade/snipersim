@@ -122,6 +122,7 @@ private:
    dl::DecoderFactory *m_factory;
 
    void printInstModeSummary();
+
 };
 
 __attribute__((unused)) static Simulator *Sim()

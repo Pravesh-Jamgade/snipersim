@@ -24,6 +24,7 @@ Cache::Cache(
    m_cache_type(cache_type),
    m_fault_injector(fault_injector)
 {
+   doa = new DOA(name);
    m_set_info = CacheSet::createCacheSetInfo(name, cfgname, core_id, replacement_policy, m_associativity);
    m_sets = new CacheSet*[m_num_sets];
    for (UInt32 i = 0; i < m_num_sets; i++)
@@ -48,6 +49,7 @@ Cache::~Cache()
    delete [] m_set_usage_hist;
    #endif
 
+   delete doa;
    if (m_set_info)
       delete m_set_info;
 
@@ -99,6 +101,11 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
    if (cache_block_info == NULL)
       return NULL;
 
+
+   //***
+   if(update_replacement)
+      cache_block_info->used++;
+
    if (access_type == LOAD)
    {
       // NOTE: assumes error occurs in memory. If we want to model bus errors, insert the error into buff instead
@@ -143,6 +150,19 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       LOG_ASSERT_ERROR(res != NULL, "Inserted line no longer there?");
 
       m_fault_injector->postWrite(addr, set_index * m_associativity + line_index, m_sets[set_index]->getBlockSize(), (Byte*)m_sets[set_index]->getDataPtr(line_index, 0), now);
+   }
+
+   if(eviction)
+   {
+      size_t sz = this->getName().find(String("tlb"));
+      if(sz!=string::npos)
+      {
+         doa->func_add_evict(tag, evict_block_info->used);
+      }
+      else
+      {
+         doa->func_add_evict(addr>>12, evict_block_info->used);
+      }
    }
 
    #ifdef ENABLE_SET_USAGE_HIST
