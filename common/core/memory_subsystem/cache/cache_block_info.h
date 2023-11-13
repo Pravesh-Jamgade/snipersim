@@ -61,7 +61,7 @@ class CacheBlockInfo
 
       static const char* getOptionName(option_t option);
 
-      /* if 1, dead else alive */
+      /* if 0, then dead else alive */
       int used;
 };
 

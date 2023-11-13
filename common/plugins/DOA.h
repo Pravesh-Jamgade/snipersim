@@ -45,11 +45,14 @@ class DOA
     DOA(String name)
     {
         this->name = name;
-        total_doa = 0;
-        total_mostly_dead = total_mostly_live = 0;
-        total_evicted = total_live = 0;
         s = name + String("_DEADCOUNT.log");
         out = LogStream::get_file_stream(s.c_str());
+
+        total_doa = 0;
+        total_mostly_dead = 0;
+        total_mostly_live = 0;
+        total_evicted = 0;
+        total_live = 0;
     }
 
     ~DOA()
@@ -74,7 +77,7 @@ class DOA
         total_evicted++;
         deadpage[page].page_evicted++;
 
-        if(used == 0)
+        if(used <= 0)
         {
             total_doa++;
             deadpage[page].page_doa++;

@@ -103,8 +103,7 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
 
 
    //***
-   if(update_replacement)
-      cache_block_info->used++;
+   cache_block_info->used++;
 
    if (access_type == LOAD)
    {
