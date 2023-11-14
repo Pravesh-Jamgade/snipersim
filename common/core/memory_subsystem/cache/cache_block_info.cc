@@ -70,6 +70,7 @@ CacheBlockInfo::clone(CacheBlockInfo* cache_block_info)
    m_owner = cache_block_info->m_owner;
    m_used = cache_block_info->m_used;
    m_options = cache_block_info->m_options;
+   used = cache_block_info->used;
 }
 
 bool

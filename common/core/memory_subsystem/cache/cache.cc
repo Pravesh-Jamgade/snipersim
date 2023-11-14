@@ -102,9 +102,6 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
       return NULL;
 
 
-   // //***
-   // cache_block_info->used++;
-
    if (access_type == LOAD)
    {
       // NOTE: assumes error occurs in memory. If we want to model bus errors, insert the error into buff instead
