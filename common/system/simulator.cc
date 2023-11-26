@@ -125,6 +125,7 @@ Simulator::Simulator()
    , m_running(false)
    , m_inst_mode_output(true)
 {
+   llc = new DOA("sim-llc");
 }
 
 void Simulator::start()

@@ -42,6 +42,9 @@ class DOA
     String name;
     fstream out;
 
+    IntPtr corr = 0;
+    IntPtr total_tracked = 0;
+
     DOA(String name)
     {
         this->name = name;
@@ -64,6 +67,7 @@ class DOA
         out.close();
 
         std::cout << "name:"<< name << ", total_evicted:" << total_evicted << ", total_doa:" << total_doa <<", total_live:" << total_live << ", total_mostly_dead:" << total_mostly_dead <<", total_mostly_live:" << total_mostly_live << '\n';
+        std::cout << "name:" << name << ", total_corr:"<<corr<<", total_tracked:"<<total_tracked<<'\n';
     }
 
     void func_add_evict(IntPtr page, int used)
@@ -98,7 +102,24 @@ class DOA
             total_mostly_live++;
             deadpage[page].page_mostly_live++;
         }
+    }
 
+    // called by stlb doa upon eviction
+    // if stlb page doa then doa corr between stlb and llc is complete. count corr++. 
+    // count total_corr++.
+    void func_track_corr(DOA* llc, IntPtr page, int used)
+    {
+
+        auto findPage = llc->deadpage.find(page);
+        if(findPage!=deadpage.end())
+        {
+
+            if(used<=0)
+            {
+                corr+=findPage->second.page_doa;
+            }
+            total_tracked+=findPage->second.page_doa;
+        }
     }
 
 };

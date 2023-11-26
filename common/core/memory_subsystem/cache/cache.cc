@@ -156,10 +156,14 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       if(sz!=string::npos)
       {
          doa->func_add_evict(tag, evict_block_info->used);
+         if(this->getName().find(String("stlb")) != string::npos)
+            doa->func_track_corr(Sim()->llc, tag, evict_block_info->used);
       }
       else
       {
          doa->func_add_evict(addr>>12, evict_block_info->used);
+         if(this->getName().find(String("L3")) != string::npos)
+            Sim()->llc->func_add_evict(addr>>12, evict_block_info->used);
       }
    }
 

@@ -5,6 +5,8 @@
 #include "log.h"
 #include "inst_mode.h"
 
+#include "DOA.h"
+
 #include <decoder.h>
 
 class _Thread;
@@ -34,6 +36,8 @@ namespace config { class Config; }
 class Simulator
 {
 public:
+   DOA* llc;
+
    Simulator();
    ~Simulator();
 
