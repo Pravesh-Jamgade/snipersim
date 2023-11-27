@@ -109,17 +109,13 @@ class DOA
     // count total_corr++.
     void func_track_corr(DOA* llc, IntPtr page, int used)
     {
-
         auto findPage = llc->deadpage.find(page);
-        if(findPage!=deadpage.end())
+        if(used<=0)
         {
-
-            if(used<=0)
-            {
-                corr+=findPage->second.page_doa;
-            }
-            total_tracked+=findPage->second.page_doa;
+            corr+=findPage->second.page_doa;
         }
+        total_tracked+=findPage->second.page_doa;
+        deadpage.erase(findPage);
     }
 
 };
