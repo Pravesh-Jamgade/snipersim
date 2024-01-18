@@ -49,6 +49,7 @@ Cache::~Cache()
    delete [] m_set_usage_hist;
    #endif
 
+   printf("delete %s\n", m_name.c_str());
    delete doa;
    if (m_set_info)
       delete m_set_info;
@@ -152,18 +153,15 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
 
    if(eviction)
    {
-      size_t sz = this->getName().find(String("tlb"));
-      if(sz!=string::npos)
+      if(this->getName().find(String("stlb")) != string::npos)
       {
-         doa->func_add_evict(tag, evict_block_info->used);
          doa->func_track_corr(Sim()->llc, tag, evict_block_info->used);
       }
-      else
+    
+      if(this->getName().find(String("L3")) != string::npos)
       {
-         doa->func_add_evict(addr>>12, evict_block_info->used);
-         if(this->getName().find(String("L3")) != string::npos)
-            Sim()->llc->func_add_evict(addr>>12, evict_block_info->used);
-      }
+         Sim()->llc->func_add_evict(addr>>12, evict_block_info->used);
+      }   
    }
 
    #ifdef ENABLE_SET_USAGE_HIST

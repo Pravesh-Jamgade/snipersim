@@ -822,11 +822,6 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
       if (isPrefetch == Prefetch::NONE)
          getCache()->updateCounters(cache_hit);
       updateCounters(mem_op_type, address, cache_hit, getCacheState(address), isPrefetch);
-
-      if(cache_hit)
-      {
-         cache_block_info->used++;
-      }
    }
 
    if (cache_hit)

@@ -27,7 +27,9 @@ TLB::lookup(IntPtr address, SubsecondTime now, IntPtr pc, bool allocate_on_miss)
    m_access++;
 
    if (hit)
+   {
       return true;
+   }   
 
    m_miss++;
 
@@ -54,7 +56,9 @@ TLB::allocate(IntPtr address, SubsecondTime now, IntPtr pc)
 
    // Use next level as a victim cache
    if (eviction && m_next_level)
+   {
       m_next_level->allocate(evict_addr, now, pc);
+   }
 }
 
 }

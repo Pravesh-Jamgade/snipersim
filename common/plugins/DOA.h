@@ -15,59 +15,65 @@ class DOA
         public:
 
         IntPtr page_doa;
-        IntPtr page_mostly_dead;
-        IntPtr page_mostly_live;
-        IntPtr page_evicted;
         IntPtr page_live;
         
         Meta()
         {
             page_doa = 0;
-            page_mostly_dead = page_mostly_live = 0;
-            page_evicted = 0;
             page_live = 0;
+        }
+
+        Meta(IntPtr doa, IntPtr live)
+        {
+            page_doa=doa;
+            page_live=live;
         }
     };
     
     public:
     map<IntPtr, Meta> deadpage;
 
-    IntPtr total_doa;
-    IntPtr total_mostly_dead;
-    IntPtr total_mostly_live;
-    IntPtr total_evicted;
-    IntPtr total_live;
-
     String s;
     String name;
     fstream out;
 
-    IntPtr corr = 0;
-    IntPtr total_tracked = 0;
+    map<IntPtr, vector<Meta>> across_run;
 
     DOA(String name)
     {
         this->name = name;
-        s = name + String("_DEADCOUNT.log");
-        out = LogStream::get_file_stream(s.c_str());
-
-        total_doa = 0;
-        total_mostly_dead = 0;
-        total_mostly_live = 0;
-        total_evicted = 0;
-        total_live = 0;
     }
 
     ~DOA()
     {
-        for(auto e: deadpage)
+        if(name.find("stlb") != string::npos)
         {
-            out << std::hex << e.first << std::dec << ',' << e.second.page_doa << ',' << e.second.page_mostly_dead << ',' << e.second.page_mostly_live << ',' << e.second.page_evicted << '\n';
-        }
-        out.close();
+            this->name = name;
+            s = name + String("_DEADCOUNT.log");
+            out = LogStream::get_file_stream(s.c_str());
+            
+            for(auto entry: across_run){
+                for(auto pa: entry.second){
+                    out << std::hex << entry.first << "," << std::dec << pa.page_doa << "," << pa.page_live << '\n';
+                }
+            }
 
-        std::cout << "name:"<< name << ", total_evicted:" << total_evicted << ", total_doa:" << total_doa <<", total_live:" << total_live << ", total_mostly_dead:" << total_mostly_dead <<", total_mostly_live:" << total_mostly_live << '\n';
-        std::cout << "name:" << name << ", total_corr:"<<corr<<", total_tracked:"<<total_tracked<<'\n';
+            out.close();
+        }
+
+        if(name.find("L3") != string::npos)
+        {
+            this->name = name;
+            s = name + String("_DEADCOUNT.log");
+            out = LogStream::get_file_stream(s.c_str());
+            
+            for(auto entry: deadpage)
+            {
+                out << std::hex << entry.first << "," << std::dec << entry.second.page_doa << "," << entry.second.page_live << '\n';
+            }   
+
+            out.close();
+        }
     }
 
     void func_add_evict(IntPtr page, int used)
@@ -78,29 +84,14 @@ class DOA
             deadpage.insert({page, Meta()});
         }
         
-        total_evicted++;
-        deadpage[page].page_evicted++;
-
+        cout << name << ", " << used << '\n';
         if(used <= 0)
         {
-            total_doa++;
             deadpage[page].page_doa++;
         }
         else
         {
-            total_live++;
             deadpage[page].page_live++;
-        }
-
-        if(deadpage[page].page_doa > deadpage[page].page_live)
-        {
-            total_mostly_dead++;
-            deadpage[page].page_mostly_dead++;
-        }
-        else
-        {
-            total_mostly_live++;
-            deadpage[page].page_mostly_live++;
         }
     }
 
@@ -110,12 +101,12 @@ class DOA
     void func_track_corr(DOA* llc, IntPtr page, int used)
     {
         auto findPage = llc->deadpage.find(page);
-        if(used<=0)
+        if(findPage==llc->deadpage.end())
         {
-            corr+=findPage->second.page_doa;
-        }
-        total_tracked+=findPage->second.page_doa;
-        deadpage.erase(findPage);
+           return;
+        }   
+        across_run[page].push_back(Meta(findPage->second.page_doa, findPage->second.page_live));
+        llc->deadpage.erase(findPage);
     }
 
 };
