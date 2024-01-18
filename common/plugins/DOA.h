@@ -14,19 +14,19 @@ class DOA
     {
         public:
 
-        IntPtr page_doa;
-        IntPtr page_live;
+        IntPtr doa;
+        IntPtr evictions;
         
         Meta()
         {
-            page_doa = 0;
-            page_live = 0;
+            doa = 0;
+            evictions = 0;
         }
 
-        Meta(IntPtr doa, IntPtr live)
+        Meta(IntPtr doa, IntPtr evictions)
         {
-            page_doa=doa;
-            page_live=live;
+            this->doa = doa;
+            this->evictions = evictions;
         }
     };
     
@@ -54,23 +54,9 @@ class DOA
             
             for(auto entry: across_run){
                 for(auto pa: entry.second){
-                    out << std::hex << entry.first << "," << std::dec << pa.page_doa << "," << pa.page_live << '\n';
+                    out << std::hex << entry.first << "," << std::dec << pa.doa << "," << pa.evictions << '\n';
                 }
             }
-
-            out.close();
-        }
-
-        if(name.find("L3") != string::npos)
-        {
-            this->name = name;
-            s = name + String("_DEADCOUNT.log");
-            out = LogStream::get_file_stream(s.c_str());
-            
-            for(auto entry: deadpage)
-            {
-                out << std::hex << entry.first << "," << std::dec << entry.second.page_doa << "," << entry.second.page_live << '\n';
-            }   
 
             out.close();
         }
@@ -84,15 +70,11 @@ class DOA
             deadpage.insert({page, Meta()});
         }
         
-        cout << name << ", " << used << '\n';
         if(used <= 0)
         {
-            deadpage[page].page_doa++;
+            deadpage[page].doa++;
         }
-        else
-        {
-            deadpage[page].page_live++;
-        }
+        deadpage[page].evictions++;
     }
 
     // called by stlb doa upon eviction
@@ -105,8 +87,7 @@ class DOA
         {
            return;
         }   
-        across_run[page].push_back(Meta(findPage->second.page_doa, findPage->second.page_live));
-        llc->deadpage.erase(findPage);
+        across_run[page].push_back(Meta(findPage->second.doa, findPage->second.evictions));
     }
 
 };
