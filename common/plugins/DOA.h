@@ -14,20 +14,17 @@ class DOA
     {
         public:
 
-        int used;
         IntPtr doa;
         IntPtr evictions;
         
         Meta()
         {
-            used = 0;
             doa = 0;
             evictions = 0;
         }
 
-        Meta(int used, IntPtr doa, IntPtr evictions)
+        Meta(IntPtr doa, IntPtr evictions)
         {
-            this->used = used;
             this->doa = doa;
             this->evictions = evictions;
         }
@@ -57,7 +54,7 @@ class DOA
             
             for(auto entry: across_run){
                 for(auto pa: entry.second){
-                    out << std::hex << entry.first << "," << std::dec << pa.used << "," << pa.doa << "," << pa.evictions << '\n';
+                    out << std::hex << entry.first << "," << std::dec << "," << pa.doa << "," << pa.evictions << '\n';
                 }
             }
 
@@ -89,8 +86,9 @@ class DOA
         if(findPage==llc->deadpage.end())
         {
            return;
-        }   
-        across_run[page].push_back(Meta(used, findPage->second.doa, findPage->second.evictions));
+        }
+        if(used <=0) 
+            across_run[page].push_back(Meta(findPage->second.doa, findPage->second.evictions));
     }
 
 };
