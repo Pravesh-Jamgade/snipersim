@@ -87,8 +87,11 @@ class DOA
         {
            return;
         }
-        if(used <=0) 
+        if(used <=0)
+        {
             across_run[page].push_back(Meta(findPage->second.doa, findPage->second.evictions));
+            llc->deadpage.erase(findPage);
+        }
     }
 
 };
