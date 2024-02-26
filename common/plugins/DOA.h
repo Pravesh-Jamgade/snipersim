@@ -62,6 +62,9 @@ class DOA
         }
     }
 
+    /// @brief Called by LLC, Tracking evicted block, if it is dead for its corresponding page
+    /// @param page 
+    /// @param used 
     void func_add_evict(IntPtr page, int used)
     {
         auto foundPage = deadpage.find(page);
@@ -77,7 +80,7 @@ class DOA
         deadpage[page].evictions++;
     }
 
-    // called by stlb doa upon eviction
+    // Called by stlb doa upon eviction
     // if stlb page doa then doa corr between stlb and llc is complete. count corr++. 
     // count total_corr++.
     void func_track_corr(DOA* llc, IntPtr page, int used)
@@ -87,10 +90,10 @@ class DOA
         {
            return;
         }
-        if(used <=0)
+        if(used <=0 && (findPage->second.doa>0 || findPage->second.evictions>0))
         {
             across_run[page].push_back(Meta(findPage->second.doa, findPage->second.evictions));
-            llc->deadpage.erase(findPage);
+            llc->deadpage[page] = Meta();
         }
     }
 
