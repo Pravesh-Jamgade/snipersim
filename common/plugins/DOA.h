@@ -89,6 +89,9 @@ class DOA
         // }
         if(used <=0)
         {
+            if(deadpage.find(page) == deadpage.end())
+                deadpage[page] = Meta();
+                
             // STLB DOA Page keeping track of its corresponding DOA cache blocks and evictions
             deadpage[page].doa += llc->deadpage[page].doa;
             deadpage[page].evictions += llc->deadpage[page].evictions;
