@@ -16,17 +16,13 @@ class DOA
 
         IntPtr doa;
         IntPtr evictions;
+        IntPtr page_dead;
         
         Meta()
         {
             doa = 0;
             evictions = 0;
-        }
-
-        Meta(IntPtr doa, IntPtr evictions)
-        {
-            this->doa = doa;
-            this->evictions = evictions;
+            page_dead = 0;
         }
     };
     
@@ -36,8 +32,6 @@ class DOA
     String s;
     String name;
     fstream out;
-
-    map<IntPtr, vector<Meta>> across_run;
 
     DOA(String name)
     {
@@ -51,13 +45,11 @@ class DOA
             this->name = name;
             s = name + String("_DEADCOUNT.log");
             out = LogStream::get_file_stream(s.c_str());
-            
-            for(auto entry: across_run){
-                for(auto pa: entry.second){
-                    out << std::hex << entry.first << "," << std::dec << "," << pa.doa << "," << pa.evictions << '\n';
-                }
+            out << "page, page_dead, all_doa, all_evictions\n";
+            for(auto it: deadpage)
+            {
+                out << it.first << "," << it.second.page_dead << "," << it.second.doa << "," << it.second.evictions << '\n';
             }
-
             out.close();
         }
     }
@@ -83,18 +75,32 @@ class DOA
     // Called by stlb doa upon eviction
     // if stlb page doa then doa corr between stlb and llc is complete. count corr++. 
     // count total_corr++.
+
+    /// @brief Called by STLB, Tracking dead page, if it is dead then track the number of dead blocks it has seen
+    /// @param llc 
+    /// @param page 
+    /// @param used 
     void func_track_corr(DOA* llc, IntPtr page, int used)
     {
-        auto findPage = llc->deadpage.find(page);
-        if(findPage==llc->deadpage.end())
+        // auto findPage = llc->deadpage.find(page);
+        // if(findPage==llc->deadpage.end())
+        // {
+        //    return;
+        // }
+        if(used <=0)
         {
-           return;
-        }
-        if(used <=0 && (findPage->second.doa>0 || findPage->second.evictions>0))
-        {
-            across_run[page].push_back(Meta(findPage->second.doa, findPage->second.evictions));
+            // STLB DOA Page keeping track of its corresponding DOA cache blocks and evictions
+            deadpage[page].doa += llc->deadpage[page].doa;
+            deadpage[page].evictions += llc->deadpage[page].evictions;
+
+            // also count how many times current page is dead
+            deadpage[page].page_dead += 1;
+
+            // reset DOA structure of LLC 
             llc->deadpage[page] = Meta();
         }
+
+
     }
 
 };
