@@ -28,12 +28,12 @@ TLB::lookup(IntPtr address, IntPtr va_address, SubsecondTime now, bool allocate_
    UInt64 pa_page = address >> 12;
    int type_page = (int)Sim()->getContextHintObject()->what_is_it(va_address);
 
-   Sim()->getPageCall()->page_map[tlb_core_id][va_page].page_granularity[type_page] = 1;
-
-   if(Sim()->getPageCall()->page_map[tlb_core_id].find(address) == Sim()->getPageCall()->page_map[tlb_core_id].end())
+   if(Sim()->getPageCall()->page_map[tlb_core_id].find(va_page) == Sim()->getPageCall()->page_map[tlb_core_id].end())
    {
-      Sim()->getPageCall()->page_map[tlb_core_id][va_page] = Page(pa_page);
+      Sim()->getPageCall()->page_map[tlb_core_id].insert({va_page, Page(pa_page)});
    }
+
+   Sim()->getPageCall()->page_map[tlb_core_id][va_page].page_granularity[type_page] = 1;
 
    if(m_cache.getName().find("dtlb") != string::npos)
    {

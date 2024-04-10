@@ -8,8 +8,10 @@
 
 class Page{
 public:
+UInt64 first_level_hit;
 UInt64 first_level_miss;
 UInt64 first_level_access;
+UInt64 second_level_hit;
 UInt64 second_level_miss;
 UInt64 second_level_access;
 UInt64 ppa;
@@ -18,16 +20,16 @@ bool *page_granularity;
 Page()
 {
     ppa = 0;
-    first_level_miss = first_level_access = 0;
-    second_level_miss = second_level_access = 0;
-    page_granularity = (bool*)calloc(3, sizeof(bool));
+    first_level_hit = first_level_miss = first_level_access = 0;
+    second_level_hit = second_level_miss = second_level_access = 0;
+    page_granularity = (bool*)calloc(4, sizeof(bool));
 }
 
 Page(UInt64 page)
 {
     ppa = page;
-    first_level_miss = first_level_access = 0;
-    second_level_miss = second_level_access = 0;
+    first_level_hit = first_level_miss = first_level_access = 0;
+    second_level_hit = second_level_miss = second_level_access = 0;
     page_granularity = (bool*)calloc(4, sizeof(bool));
 }
 };
@@ -41,7 +43,7 @@ PageCall(){}
 {
     ofstream of;
     of.open("tlb_evict.log", ios::out);
-    of << "cpu, vp, pp, fist_level_miss, first_level_access, second_level_miss, second_level_access, type, mix\n";
+    of << "cpu, vp, pp, flh, flm, fla, slh, slm, sla, type, mix\n";
     for(int i=0; i< NUM_CPUS; i++)
     {
         for(auto e : page_map[i])
@@ -56,8 +58,8 @@ PageCall(){}
             }
             
             of << i << "," << e.first << "," << e.second.ppa << "," 
-                << e.second.first_level_miss << "," << e.second.first_level_access << "," 
-                << e.second.second_level_miss << "," << e.second.second_level_access << "," 
+                << e.second.first_level_hit << ","<< e.second.first_level_miss << "," << e.second.first_level_access << "," 
+                << e.second.second_level_hit << "," << e.second.second_level_miss << "," << e.second.second_level_access << "," 
                 << type << "," << count << '\n';
         }
     }
