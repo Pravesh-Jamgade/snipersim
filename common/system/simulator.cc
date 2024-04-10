@@ -33,6 +33,7 @@
 //*
 #include "sim_api.h"
 #include "context_hint.h"
+#include "tlb_helper.h"
 
 Simulator *Simulator::m_singleton;
 config::Config *Simulator::m_config_file;
@@ -161,6 +162,7 @@ void Simulator::start()
 
    //*
    context_hint = new ContextHint();
+   page_call = new PageCall();
 
    if (Sim()->getCfg()->getBool("traceinput/enabled"))
       m_trace_manager = new TraceManager();
@@ -215,6 +217,7 @@ void Simulator::start()
 Simulator::~Simulator()
 {
    delete context_hint;
+   delete page_call;
    
    // Done with all the Pin stuff, allow using Config::Config again
    m_config_file_allowed = true;

@@ -24,6 +24,9 @@ namespace ParametricDramDirectoryMSI
          TLB *m_next_level;
 
          UInt64 m_access, m_miss;
+
+         core_id_t tlb_core_id;
+
       public:
          TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UInt32 associativity, TLB *next_level);
          bool lookup(IntPtr address, IntPtr va_address, SubsecondTime now, bool allocate_on_miss = true);         //saurabh

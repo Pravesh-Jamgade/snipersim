@@ -9,6 +9,7 @@
 
 //*
 #include "context_hint.h"
+#include "tlb_helper.h"
 
 class _Thread;
 class SyscallServer;
@@ -136,6 +137,7 @@ public:
    //*
    void set_context(int type, uint64_t addr);
    ContextHint* getContextHintObject(){return context_hint;}
+   PageCall* getPageCall(){return page_call;}
    
 private:
    Config m_config;
@@ -163,6 +165,7 @@ private:
 
    //*
    ContextHint* context_hint;
+   PageCall* page_call;
 
    bool m_running;
    bool m_inst_mode_output;

@@ -17,4 +17,6 @@ static inline String get_arr_name(int i)
 }
 
 #define ARRAY_TYPE_SIZE 4
+
+#define NUM_CPUS 25
 #endif
