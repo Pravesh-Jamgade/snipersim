@@ -49,7 +49,17 @@ TLB::lookup(IntPtr address, IntPtr va_address, SubsecondTime now, bool allocate_
    m_access++;
 
    if (hit)
+   {
+      if(m_cache.getName().find("dtlb") != string::npos)
+      {
+         Sim()->getPageCall()->page_map[tlb_core_id][va_page].first_level_hit++;
+      }
+      else if(m_cache.getName().find("stlb") != string::npos)
+      {
+         Sim()->getPageCall()->page_map[tlb_core_id][va_page].second_level_hit++;
+      }
       return true;
+   }
 
    m_miss++;
 
